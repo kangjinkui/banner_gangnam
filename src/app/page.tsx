@@ -23,7 +23,7 @@ const mockBannersData: BannerWithParty[] = [
     administrative_district: '역삼1동',
     start_date: '2024-01-15',
     end_date: '2024-03-15',
-    image_url: '/api/placeholder/150/100',
+    image_url: 'https://via.placeholder.com/150x100?text=Banner',
     is_active: true,
     created_at: '2024-01-15T00:00:00Z',
     updated_at: '2024-01-15T00:00:00Z',
@@ -46,7 +46,7 @@ const mockBannersData: BannerWithParty[] = [
     administrative_district: '서초1동',
     start_date: '2024-02-01',
     end_date: '2024-02-28',
-    image_url: '/api/placeholder/150/100',
+    image_url: 'https://via.placeholder.com/150x100?text=Banner',
     is_active: true,
     created_at: '2024-02-01T00:00:00Z',
     updated_at: '2024-02-01T00:00:00Z',
@@ -69,7 +69,7 @@ const mockBannersData: BannerWithParty[] = [
     administrative_district: '논현1동',
     start_date: '2024-01-20',
     end_date: '2024-04-20',
-    image_url: '/api/placeholder/150/100',
+    image_url: 'https://via.placeholder.com/150x100?text=Banner',
     is_active: true,
     created_at: '2024-01-20T00:00:00Z',
     updated_at: '2024-01-20T00:00:00Z',
@@ -93,9 +93,27 @@ export default function Dashboard() {
   const expiredBanners = useExpiredBanners();
   const { setBanners } = useBannerActions();
 
-  // Initialize mock data on component mount
+  // Fetch real data from API
   useEffect(() => {
-    setBanners(mockBannersData);
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/banners');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setBanners(result.data);
+          }
+        } else {
+          // Fallback to mock data if API fails
+          setBanners(mockBannersData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch banners:', error);
+        setBanners(mockBannersData);
+      }
+    };
+
+    fetchData();
   }, [setBanners]);
 
   return (
@@ -228,13 +246,112 @@ function StatsCard({ title, value, change, icon, color }: {
 }
 
 function MapView() {
+  const banners = useBanners();
+  const [selectedBanner, setSelectedBanner] = useState<BannerWithParty | null>(null);
+
   return (
-    <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-      <div className="text-center">
-        <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600 font-medium">지도를 불러오는 중...</p>
-        <p className="text-sm text-gray-500 mt-2">카카오 지도 API를 로딩하고 있습니다</p>
+    <div className="space-y-4">
+      {/* Map placeholder with banner markers */}
+      <div className="h-96 bg-gradient-to-br from-blue-50 to-green-50 rounded-lg relative overflow-hidden border-2 border-dashed border-gray-300">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600 font-medium">카카오 지도 영역</p>
+            <p className="text-sm text-gray-500 mt-2">실제 구현 시 카카오 지도 API가 표시됩니다</p>
+          </div>
+        </div>
+
+        {/* Mock markers */}
+        {banners.map((banner, index) => (
+          <div
+            key={banner.id}
+            className="absolute cursor-pointer transform -translate-x-1/2 -translate-y-1/2 group"
+            style={{
+              left: `${20 + (index % 4) * 20}%`,
+              top: `${30 + (index % 3) * 15}%`
+            }}
+            onClick={() => setSelectedBanner(banner)}
+          >
+            <div
+              className="w-6 h-6 rounded-full border-2 border-white shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform"
+              style={{ backgroundColor: banner.party.color }}
+            >
+              <MapPin className="w-3 h-3 text-white" />
+            </div>
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              {banner.text}
+            </div>
+          </div>
+        ))}
       </div>
+
+      {/* Selected banner details */}
+      {selectedBanner && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-start gap-4">
+              <img
+                src={selectedBanner.image_url || 'https://via.placeholder.com/100x80'}
+                alt={selectedBanner.text}
+                className="w-20 h-16 rounded-lg object-cover bg-gray-100"
+              />
+              <div className="flex-1">
+                <h4 className="font-medium text-gray-900 mb-1">{selectedBanner.text}</h4>
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                  <MapPin className="w-4 h-4" />
+                  {selectedBanner.address}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    style={{ backgroundColor: selectedBanner.party.color, color: 'white' }}
+                    className="text-xs"
+                  >
+                    {selectedBanner.party.name}
+                  </Badge>
+                  <span className="text-sm text-gray-600">
+                    {selectedBanner.start_date} ~ {selectedBanner.end_date}
+                  </span>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedBanner(null)}
+              >
+                ✕
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Legend */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">범례</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from(new Set(banners.map(b => b.party.name))).map(partyName => {
+              const party = banners.find(b => b.party.name === partyName)?.party;
+              if (!party) return null;
+
+              return (
+                <div key={partyName} className="flex items-center gap-2">
+                  <div
+                    className="w-4 h-4 rounded-full border border-gray-300"
+                    style={{ backgroundColor: party.color }}
+                  />
+                  <span className="text-sm">{partyName}</span>
+                  <span className="text-xs text-gray-500">
+                    ({banners.filter(b => b.party.name === partyName).length})
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -301,11 +418,12 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
 
 function BannerCard({ banner }: { banner: BannerWithParty }) {
   const isExpired = new Date(banner.end_date) < new Date();
+  const { updateBanner, removeBanner } = useBannerActions();
 
   return (
     <div className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
       <img
-        src={banner.image_url || '/api/placeholder/150/100'}
+        src={banner.image_url || 'https://via.placeholder.com/150x100?text=No+Image'}
         alt={banner.text}
         className="w-20 h-16 rounded-lg object-cover bg-gray-100"
       />
@@ -334,10 +452,29 @@ function BannerCard({ banner }: { banner: BannerWithParty }) {
           {banner.start_date} ~ {banner.end_date}
         </p>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm">
-            수정
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              // Simple edit - toggle active status for demo
+              updateBanner(banner.id, {
+                is_active: !banner.is_active,
+                updated_at: new Date().toISOString()
+              });
+            }}
+          >
+            {banner.is_active ? '비활성화' : '활성화'}
           </Button>
-          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-red-600 hover:text-red-700"
+            onClick={() => {
+              if (confirm('정말 삭제하시겠습니까?')) {
+                removeBanner(banner.id);
+              }
+            }}
+          >
             삭제
           </Button>
         </div>
@@ -347,13 +484,149 @@ function BannerCard({ banner }: { banner: BannerWithParty }) {
 }
 
 function StatsView() {
+  const banners = useBanners();
+  const summary = useBannerSummary();
+
+  // Calculate statistics
+  const partyStats = banners.reduce((acc, banner) => {
+    const partyName = banner.party.name;
+    if (!acc[partyName]) {
+      acc[partyName] = { count: 0, active: 0, expired: 0, color: banner.party.color };
+    }
+    acc[partyName].count++;
+    if (banner.is_active) acc[partyName].active++;
+    if (new Date(banner.end_date) < new Date()) acc[partyName].expired++;
+    return acc;
+  }, {} as Record<string, { count: number; active: number; expired: number; color: string }>);
+
+  const districtStats = banners.reduce((acc, banner) => {
+    const district = banner.administrative_district || '미분류';
+    acc[district] = (acc[district] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
   return (
-    <div className="h-96 bg-gray-50 rounded-lg flex items-center justify-center">
-      <div className="text-center">
-        <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600 font-medium">상세 통계</p>
-        <p className="text-sm text-gray-500 mt-2">통계 차트가 여기에 표시됩니다</p>
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">{summary.total}</div>
+            <div className="text-sm text-gray-600">전체 현수막</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">{summary.active}</div>
+            <div className="text-sm text-gray-600">활성 현수막</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-red-600">{summary.expired}</div>
+            <div className="text-sm text-gray-600">만료된 현수막</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-purple-600">{summary.upcoming}</div>
+            <div className="text-sm text-gray-600">예정된 현수막</div>
+          </CardContent>
+        </Card>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Party Statistics */}
+        <Card>
+          <CardHeader>
+            <CardTitle>정당별 현수막 현황</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {Object.entries(partyStats).map(([party, stats]) => (
+                <div key={party} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: stats.color }}
+                      />
+                      <span className="font-medium">{party}</span>
+                    </div>
+                    <span className="text-sm text-gray-600">{stats.count}개</span>
+                  </div>
+                  <div className="flex gap-2 text-xs">
+                    <Badge variant="outline" className="text-green-600">
+                      활성: {stats.active}
+                    </Badge>
+                    <Badge variant="outline" className="text-red-600">
+                      만료: {stats.expired}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* District Statistics */}
+        <Card>
+          <CardHeader>
+            <CardTitle>지역별 현수막 현황</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {Object.entries(districtStats)
+                .sort(([, a], [, b]) => b - a)
+                .map(([district, count]) => (
+                  <div key={district} className="flex items-center justify-between">
+                    <span className="font-medium">{district}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${(count / summary.total) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600 min-w-[2rem]">{count}개</span>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Timeline */}
+      <Card>
+        <CardHeader>
+          <CardTitle>최근 등록 현황</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {banners
+              .sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
+              .slice(0, 5)
+              .map((banner) => (
+                <div key={banner.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: banner.party.color }}
+                    />
+                    <div>
+                      <div className="font-medium">{banner.text}</div>
+                      <div className="text-sm text-gray-500">{banner.address}</div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {banner.created_at ? new Date(banner.created_at).toLocaleDateString() : ''}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

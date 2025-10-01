@@ -67,6 +67,12 @@ export class ImageService {
    * Process image (resize, compress, format conversion)
    */
   static async processImage(file: File, options: ImageProcessOptions = {}): Promise<File> {
+    // Check if we're in browser environment
+    if (typeof document === 'undefined') {
+      // In server environment, return file as-is without processing
+      return file;
+    }
+
     const {
       maxWidth = this.DEFAULT_MAX_SIZE.width,
       maxHeight = this.DEFAULT_MAX_SIZE.height,
@@ -131,6 +137,12 @@ export class ImageService {
    * Generate thumbnail from image
    */
   static async generateThumbnail(file: File, options: ThumbnailOptions): Promise<File> {
+    // Check if we're in browser environment
+    if (typeof document === 'undefined') {
+      // In server environment, return original file as thumbnail
+      return file;
+    }
+
     const {
       width,
       height,
@@ -258,6 +270,12 @@ export class ImageService {
    * Get image dimensions
    */
   static async getImageDimensions(file: File): Promise<{ width: number; height: number }> {
+    // Check if we're in browser environment
+    if (typeof document === 'undefined') {
+      // In server environment, return default dimensions
+      return { width: 800, height: 600 };
+    }
+
     return new Promise((resolve, reject) => {
       const img = new Image();
 
@@ -282,6 +300,11 @@ export class ImageService {
    * Create image preview URL
    */
   static createPreviewUrl(file: File): string {
+    // Check if we're in browser environment
+    if (typeof URL === 'undefined' || typeof URL.createObjectURL === 'undefined') {
+      // In server environment, return empty string
+      return '';
+    }
     return URL.createObjectURL(file);
   }
 
@@ -289,6 +312,10 @@ export class ImageService {
    * Revoke preview URL
    */
   static revokePreviewUrl(url: string): void {
+    // Check if we're in browser environment
+    if (typeof URL === 'undefined' || typeof URL.revokeObjectURL === 'undefined') {
+      return;
+    }
     URL.revokeObjectURL(url);
   }
 

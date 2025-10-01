@@ -7,12 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar as CalendarIcon, MapPin, Upload, ArrowLeft } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useBannerActions } from '@/store/banner.store';
+import { BannerWithParty } from '@/types/banner';
+import { useToast } from '@/hooks/use-toast';
 
 // Validation schema
 const bannerFormSchema = z.object({
@@ -27,18 +30,19 @@ const bannerFormSchema = z.object({
 
 type BannerFormData = z.infer<typeof bannerFormSchema>;
 
-// Mock parties data
-const parties = [
-  { id: '1', name: '더불어민주당', color: '#1D4ED8' },
-  { id: '2', name: '국민의힘', color: '#DC2626' },
-  { id: '3', name: '정의당', color: '#F59E0B' },
-  { id: '4', name: '개혁신당', color: '#10B981' },
-];
+interface Party {
+  id: string;
+  name: string;
+  color: string;
+}
 
 export default function BannerRegisterPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { addBanner } = useBannerActions();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [parties, setParties] = useState<Party[]>([]);
 
   const form = useForm<BannerFormData>({
     resolver: zodResolver(bannerFormSchema),
@@ -51,6 +55,32 @@ export default function BannerRegisterPage() {
       memo: '',
     },
   });
+
+  // Fetch parties on component mount
+  useEffect(() => {
+    const fetchParties = async () => {
+      try {
+        const response = await fetch('/api/parties');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            setParties(result.data);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch parties:', error);
+        // Fallback to mock data
+        setParties([
+          { id: 'a1b2c3d4-e5f6-4a5b-8c9d-1e2f3a4b5c6d', name: '민주당', color: '#004EA2' },
+          { id: 'b2c3d4e5-f6a7-5b6c-9d0e-2f3a4b5c6d7e', name: '국민의힘', color: '#E61E2B' },
+          { id: 'c3d4e5f6-a7b8-6c7d-0e1f-3a4b5c6d7e8f', name: '정의당', color: '#FFCC00' },
+          { id: 'd4e5f6a7-b8c9-7d8e-1f2a-4b5c6d7e8f9a', name: '진보당', color: '#00A651' },
+        ]);
+      }
+    };
+
+    fetchParties();
+  }, []);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -67,19 +97,70 @@ export default function BannerRegisterPage() {
   const onSubmit = async (data: BannerFormData) => {
     setIsSubmitting(true);
     try {
-      console.log('Form submitted:', data);
-      // TODO: Implement actual submission logic
-      // - Upload image to Supabase Storage
-      // - Geocode address using Kakao Map API
-      // - Save to database
+      // Find selected party
+      const selectedParty = parties.find(p => p.name === data.party);
+      if (!selectedParty) {
+        throw new Error('선택된 정당을 찾을 수 없습니다.');
+      }
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Prepare form data for API
+      const formData = new FormData();
+      formData.append('party_id', selectedParty.id);
+      formData.append('address', data.address);
+      formData.append('text', data.text);
+      formData.append('start_date', data.startDate);
+      formData.append('end_date', data.endDate);
+      formData.append('memo', data.memo || '');
+      formData.append('is_active', 'true');
 
-      // Redirect to dashboard after successful submission
-      router.push('/');
+      // Add image if present
+      if (data.image) {
+        formData.append('image', data.image);
+      }
+
+      // Send to API
+      const response = await fetch('/api/banners', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Create banner for store (with party info)
+        const newBanner: BannerWithParty = {
+          ...result.data,
+          party: {
+            id: selectedParty.id,
+            name: selectedParty.name,
+            color: selectedParty.color,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        };
+
+        // Add banner to store
+        addBanner(newBanner);
+
+        // Show success message
+        toast({
+          title: '현수막이 등록되었습니다',
+          description: `${data.text} - ${data.address}`,
+        });
+
+        // Redirect to dashboard
+        router.push('/');
+      } else {
+        throw new Error(result.error || '현수막 등록에 실패했습니다.');
+      }
     } catch (error) {
       console.error('Submission error:', error);
+      toast({
+        title: '등록 실패',
+        description: error instanceof Error ? error.message : '현수막 등록 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -283,23 +364,24 @@ export default function BannerRegisterPage() {
                           </Button>
                         </div>
                       ) : (
-                        <div className="aspect-video bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center">
+                        <label
+                          htmlFor="image-upload"
+                          className="aspect-video bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors"
+                        >
                           <Upload className="w-12 h-12 text-gray-400 mb-4" />
                           <p className="text-gray-600 font-medium mb-2">사진을 업로드하세요</p>
                           <p className="text-sm text-gray-500 mb-4">JPG, PNG 파일만 가능합니다</p>
-                          <label htmlFor="image-upload">
-                            <Button type="button" variant="outline" className="cursor-pointer">
-                              파일 선택
-                            </Button>
-                            <input
-                              id="image-upload"
-                              type="file"
-                              accept="image/*"
-                              onChange={handleImageUpload}
-                              className="hidden"
-                            />
-                          </label>
-                        </div>
+                          <Button type="button" variant="outline" className="pointer-events-none">
+                            파일 선택
+                          </Button>
+                          <input
+                            id="image-upload"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                          />
+                        </label>
                       )}
                     </div>
                   </CardContent>

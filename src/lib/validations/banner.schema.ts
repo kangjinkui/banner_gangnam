@@ -12,7 +12,7 @@ import {
 
 // Banner validation schemas
 
-export const bannerCreateSchema = z.object({
+const bannerCreateBaseSchema = z.object({
   party_id: uuidSchema,
   address: addressSchema,
   text: z
@@ -27,7 +27,9 @@ export const bannerCreateSchema = z.object({
     .max(500, '메모는 500자 이하여야 합니다.')
     .optional(),
   is_active: z.boolean().optional().default(true),
-}).refine((data) => new Date(data.start_date) <= new Date(data.end_date), {
+});
+
+export const bannerCreateSchema = bannerCreateBaseSchema.refine((data) => new Date(data.start_date) <= new Date(data.end_date), {
   message: '종료일은 시작일보다 늦어야 합니다.',
   path: ['end_date'],
 });
@@ -59,8 +61,11 @@ export const bannerUpdateSchema = z.object({
   path: ['end_date'],
 });
 
-export const bannerFormSchema = bannerCreateSchema.extend({
+export const bannerFormSchema = bannerCreateBaseSchema.extend({
   image: imageFileSchema.optional(),
+}).refine((data) => new Date(data.start_date) <= new Date(data.end_date), {
+  message: '종료일은 시작일보다 늦어야 합니다.',
+  path: ['end_date'],
 });
 
 export const bannerFilterSchema = filterBaseSchema.extend({

@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/database/supabase';
+import { supabase, supabaseAdmin } from '@/lib/database/supabase';
 
 export interface UploadResult {
   url: string;
@@ -26,8 +26,11 @@ export class SupabaseStorageService {
       throw new Error('지원되는 파일 형식: JPEG, PNG, WebP');
     }
 
+    // Use admin client for server-side uploads to bypass RLS
+    const client = supabaseAdmin || supabase;
+
     try {
-      const { data, error } = await supabase.storage
+      const { data, error } = await client.storage
         .from(this.BUCKET_NAME)
         .upload(path, file, {
           cacheControl: '3600',
@@ -41,7 +44,7 @@ export class SupabaseStorageService {
         throw new Error(`파일 업로드 실패: ${error.message}`);
       }
 
-      const { data: publicUrlData } = supabase.storage
+      const { data: publicUrlData } = client.storage
         .from(this.BUCKET_NAME)
         .getPublicUrl(data.path);
 
@@ -78,8 +81,11 @@ export class SupabaseStorageService {
    * Delete a file from Supabase Storage
    */
   static async deleteFile(path: string): Promise<void> {
+    // Use admin client for server-side operations to bypass RLS
+    const client = supabaseAdmin || supabase;
+
     try {
-      const { error } = await supabase.storage
+      const { error } = await client.storage
         .from(this.BUCKET_NAME)
         .remove([path]);
 
@@ -113,8 +119,10 @@ export class SupabaseStorageService {
     contentType: string;
     lastModified: string;
   }> {
+    const client = supabaseAdmin || supabase;
+
     try {
-      const { data, error } = await supabase.storage
+      const { data, error } = await client.storage
         .from(this.BUCKET_NAME)
         .list(path.split('/').slice(0, -1).join('/'), {
           search: path.split('/').pop(),
@@ -150,8 +158,10 @@ export class SupabaseStorageService {
     lastModified: string;
     url: string;
   }>> {
+    const client = supabaseAdmin || supabase;
+
     try {
-      const { data, error } = await supabase.storage
+      const { data, error } = await client.storage
         .from(this.BUCKET_NAME)
         .list(directory, {
           limit,
@@ -164,7 +174,7 @@ export class SupabaseStorageService {
 
       return (data || []).map(file => {
         const fullPath = directory ? `${directory}/${file.name}` : file.name;
-        const { data: publicUrlData } = supabase.storage
+        const { data: publicUrlData } = client.storage
           .from(this.BUCKET_NAME)
           .getPublicUrl(fullPath);
 
@@ -200,8 +210,10 @@ export class SupabaseStorageService {
    * Create signed URL for private access
    */
   static async createSignedUrl(path: string, expiresIn: number = 3600): Promise<string> {
+    const client = supabaseAdmin || supabase;
+
     try {
-      const { data, error } = await supabase.storage
+      const { data, error } = await client.storage
         .from(this.BUCKET_NAME)
         .createSignedUrl(path, expiresIn);
 
@@ -222,11 +234,13 @@ export class SupabaseStorageService {
    * Check if file exists
    */
   static async fileExists(path: string): Promise<boolean> {
+    const client = supabaseAdmin || supabase;
+
     try {
       const directory = path.split('/').slice(0, -1).join('/');
       const fileName = path.split('/').pop();
 
-      const { data, error } = await supabase.storage
+      const { data, error } = await client.storage
         .from(this.BUCKET_NAME)
         .list(directory, {
           search: fileName,
@@ -315,7 +329,8 @@ export class SupabaseStorageService {
       const storageFiles = await this.listFiles('banners');
 
       // Get all image URLs from database
-      const { data: banners, error } = await supabase
+      const client = supabaseAdmin || supabase;
+      const { data: banners, error } = await client
         .from('banners')
         .select('image_url, thumbnail_url')
         .not('image_url', 'is', null);
