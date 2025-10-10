@@ -97,6 +97,9 @@ export async function PUT(
   }
 }
 
+// PATCH is the same as PUT for partial updates
+export const PATCH = PUT;
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

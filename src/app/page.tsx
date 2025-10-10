@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Link from 'next/link';
 import { useBanners, useBannerActions, useBannerSummary, useExpiredBanners } from '@/store/banner.store';
 import { BannerWithParty } from '@/types/banner';
+import { KakaoMap } from '@/features/map/components/KakaoMap';
+import { PartyManagement } from '@/features/parties/components/PartyManagement';
 
 // Mock data - 실제로는 Supabase에서 가져올 데이터
 const mockBannersData: BannerWithParty[] = [
@@ -86,6 +88,7 @@ const mockBannersData: BannerWithParty[] = [
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('목록');
+  const [isPartyManagementOpen, setIsPartyManagementOpen] = useState(false);
 
   // Store hooks
   const banners = useBanners();
@@ -131,7 +134,11 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="gap-2">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => setIsPartyManagementOpen(true)}
+            >
               <Users className="w-4 h-4" />
               정당 관리
             </Button>
@@ -209,6 +216,12 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Party Management Dialog */}
+      <PartyManagement
+        open={isPartyManagementOpen}
+        onOpenChange={setIsPartyManagementOpen}
+      />
     </div>
   );
 }
@@ -248,41 +261,39 @@ function StatsCard({ title, value, change, icon, color }: {
 function MapView() {
   const banners = useBanners();
   const [selectedBanner, setSelectedBanner] = useState<BannerWithParty | null>(null);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
+
+  useEffect(() => {
+    // Kakao Map API 로드 확인
+    const checkKakaoMap = setInterval(() => {
+      if (window.kakao && window.kakao.maps) {
+        window.kakao.maps.load(() => {
+          setIsMapLoaded(true);
+        });
+        clearInterval(checkKakaoMap);
+      }
+    }, 100);
+
+    return () => clearInterval(checkKakaoMap);
+  }, []);
 
   return (
     <div className="space-y-4">
-      {/* Map placeholder with banner markers */}
-      <div className="h-96 bg-gradient-to-br from-blue-50 to-green-50 rounded-lg relative overflow-hidden border-2 border-dashed border-gray-300">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 font-medium">카카오 지도 영역</p>
-            <p className="text-sm text-gray-500 mt-2">실제 구현 시 카카오 지도 API가 표시됩니다</p>
-          </div>
-        </div>
-
-        {/* Mock markers */}
-        {banners.map((banner, index) => (
-          <div
-            key={banner.id}
-            className="absolute cursor-pointer transform -translate-x-1/2 -translate-y-1/2 group"
-            style={{
-              left: `${20 + (index % 4) * 20}%`,
-              top: `${30 + (index % 3) * 15}%`
-            }}
-            onClick={() => setSelectedBanner(banner)}
-          >
-            <div
-              className="w-6 h-6 rounded-full border-2 border-white shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform"
-              style={{ backgroundColor: banner.party.color }}
-            >
-              <MapPin className="w-3 h-3 text-white" />
-            </div>
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-              {banner.text}
+      {/* Kakao Map */}
+      <div className="h-96 bg-gray-100 rounded-lg overflow-hidden">
+        {isMapLoaded ? (
+          <KakaoMap
+            banners={banners}
+            onMarkerClick={(banner) => setSelectedBanner(banner)}
+          />
+        ) : (
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center">
+              <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4 animate-pulse" />
+              <p className="text-gray-600 font-medium">카카오 지도 로딩 중...</p>
             </div>
           </div>
-        ))}
+        )}
       </div>
 
       {/* Selected banner details */}
@@ -360,6 +371,58 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParty, setSelectedParty] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [filteredBanners, setFilteredBanners] = useState<BannerWithParty[]>(banners);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Update filtered banners when original banners change
+  useEffect(() => {
+    setFilteredBanners(banners);
+  }, [banners]);
+
+  // Handle search/filter logic
+  const handleSearch = () => {
+    setIsSearching(true);
+
+    let result = [...banners];
+
+    // Filter by search query (address or text)
+    if (searchQuery.trim()) {
+      result = result.filter(banner =>
+        banner.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        banner.text.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by party
+    if (selectedParty) {
+      result = result.filter(banner => banner.party.name === selectedParty);
+    }
+
+    // Filter by status
+    if (selectedStatus) {
+      const now = new Date();
+      if (selectedStatus === 'active') {
+        result = result.filter(banner =>
+          banner.is_active && new Date(banner.end_date) >= now
+        );
+      } else if (selectedStatus === 'expired') {
+        result = result.filter(banner =>
+          new Date(banner.end_date) < now
+        );
+      }
+    }
+
+    setFilteredBanners(result);
+    setIsSearching(false);
+  };
+
+  // Reset filters
+  const handleReset = () => {
+    setSearchQuery('');
+    setSelectedParty('');
+    setSelectedStatus('');
+    setFilteredBanners(banners);
+  };
 
   return (
     <div>
@@ -373,13 +436,14 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
             <Input
               placeholder="주소 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className="pl-10"
             />
           </div>
@@ -402,15 +466,44 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
               <SelectItem value="expired">만료</SelectItem>
             </SelectContent>
           </Select>
+          <Button
+            onClick={handleSearch}
+            disabled={isSearching}
+            className="bg-indigo-600 hover:bg-indigo-700"
+          >
+            <Search className="w-4 h-4 mr-2" />
+            검색
+          </Button>
+          <Button
+            onClick={handleReset}
+            variant="outline"
+            disabled={!searchQuery && !selectedParty && !selectedStatus}
+          >
+            초기화
+          </Button>
         </div>
       </div>
 
       {/* Banner List */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">현수막 목록 ({banners.length}개)</h3>
-        {banners.map((banner) => (
-          <BannerCard key={banner.id} banner={banner} />
-        ))}
+        <h3 className="text-lg font-semibold">현수막 목록 ({filteredBanners.length}개)</h3>
+        {filteredBanners.length > 0 ? (
+          filteredBanners.map((banner) => (
+            <BannerCard key={banner.id} banner={banner} />
+          ))
+        ) : (
+          <div className="text-center py-8 bg-gray-50 rounded-lg">
+            <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-500">검색 결과가 없습니다.</p>
+            <Button
+              onClick={handleReset}
+              variant="outline"
+              className="mt-4"
+            >
+              필터 초기화
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
