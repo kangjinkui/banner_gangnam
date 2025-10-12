@@ -1,4 +1,5 @@
 // Authentication and authorization types
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 export interface User {
   id: string;
@@ -11,8 +12,7 @@ export interface User {
 
 export enum UserRole {
   ADMIN = 'admin',
-  EDITOR = 'editor',
-  VIEWER = 'viewer'
+  USER = 'user' // Renamed from VIEWER to USER - read-only user
 }
 
 export interface AuthState {
@@ -40,13 +40,12 @@ export interface AuthResponse {
 
 export interface Permission {
   resource: string;
-  actions: string[];
+  actions: ('create' | 'read' | 'update' | 'delete')[];
 }
 
 export interface RolePermissions {
   [UserRole.ADMIN]: Permission[];
-  [UserRole.EDITOR]: Permission[];
-  [UserRole.VIEWER]: Permission[];
+  [UserRole.USER]: Permission[];
 }
 
 // Permission constants
@@ -58,14 +57,28 @@ export const PERMISSIONS: RolePermissions = {
     { resource: 'audit_logs', actions: ['read'] },
     { resource: 'export', actions: ['read'] }
   ],
-  [UserRole.EDITOR]: [
-    { resource: 'parties', actions: ['read'] },
-    { resource: 'banners', actions: ['create', 'read', 'update', 'delete'] },
-    { resource: 'export', actions: ['read'] }
-  ],
-  [UserRole.VIEWER]: [
+  [UserRole.USER]: [
     { resource: 'parties', actions: ['read'] },
     { resource: 'banners', actions: ['read'] },
     { resource: 'export', actions: ['read'] }
   ]
 };
+
+// Helper function to check permissions
+export function hasPermission(
+  role: UserRole,
+  resource: string,
+  action: 'create' | 'read' | 'update' | 'delete'
+): boolean {
+  const permissions = PERMISSIONS[role];
+  const resourcePermission = permissions.find(p => p.resource === resource);
+  return resourcePermission?.actions.includes(action) ?? false;
+}
+
+export interface UserRoleData {
+  id: string;
+  user_id: string;
+  role: UserRole;
+  created_at: string;
+  updated_at: string;
+}

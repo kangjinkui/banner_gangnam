@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Calendar, Edit2, X } from 'lucide-react';
 import { BannerWithParty } from '@/types/banner';
 import { useBannerActions } from '@/store/banner.store';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface BannerDetailDialogProps {
   banner: BannerWithParty | null;
@@ -22,6 +23,7 @@ export function BannerDetailDialog({ banner, open, onOpenChange }: BannerDetailD
   const [editedBanner, setEditedBanner] = useState<BannerWithParty | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const { updateBanner } = useBannerActions();
+  const { hasPermission } = useAuth();
 
   if (!banner) return null;
 
@@ -93,7 +95,7 @@ export function BannerDetailDialog({ banner, open, onOpenChange }: BannerDetailD
             <DialogTitle className="text-xl">
               {isEditing ? '현수막 수정' : '현수막 상세 정보'}
             </DialogTitle>
-            {!isEditing && (
+            {!isEditing && hasPermission('banners', 'update') && (
               <Button
                 variant="outline"
                 size="sm"

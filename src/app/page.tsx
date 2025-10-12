@@ -13,6 +13,9 @@ import { BannerWithParty } from '@/types/banner';
 import { KakaoMap } from '@/features/map/components/KakaoMap';
 import { PartyManagement } from '@/features/parties/components/PartyManagement';
 import { BannerDetailDialog } from '@/features/banners/components/BannerDetailDialog';
+import { LoginDialog } from '@/features/auth/components/LoginDialog';
+import { useAuth } from '@/contexts/AuthContext';
+import { LogOut, User as UserIcon } from 'lucide-react';
 
 // Mock data - 실제로는 Supabase에서 가져올 데이터
 const mockBannersData: BannerWithParty[] = [
@@ -90,12 +93,16 @@ const mockBannersData: BannerWithParty[] = [
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('목록');
   const [isPartyManagementOpen, setIsPartyManagementOpen] = useState(false);
+  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
 
   // Store hooks
   const banners = useBanners();
   const summary = useBannerSummary();
   const expiredBanners = useExpiredBanners();
   const { setBanners } = useBannerActions();
+
+  // Auth hooks
+  const { user, isAuthenticated, isLoading, signOut, hasPermission } = useAuth();
 
   // Fetch real data from API
   useEffect(() => {
@@ -135,20 +142,58 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => setIsPartyManagementOpen(true)}
-            >
-              <Users className="w-4 h-4" />
-              정당 관리
-            </Button>
-            <Button asChild className="gap-2 bg-indigo-600 hover:bg-indigo-700">
-              <Link href="/register">
-                <MapPin className="w-4 h-4" />
-                현수막 등록
-              </Link>
-            </Button>
+            {isAuthenticated && user ? (
+              <>
+                {/* User Info */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+                  <UserIcon className="w-4 h-4 text-gray-600" />
+                  <div className="text-sm">
+                    <p className="font-medium text-gray-900">{user.email}</p>
+                    <p className="text-xs text-gray-500">
+                      {user.role === 'admin' ? '관리자' : '일반 사용자'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Admin-only buttons */}
+                {hasPermission('parties', 'update') && (
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => setIsPartyManagementOpen(true)}
+                  >
+                    <Users className="w-4 h-4" />
+                    정당 관리
+                  </Button>
+                )}
+
+                {hasPermission('banners', 'create') && (
+                  <Button asChild className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                    <Link href="/register">
+                      <MapPin className="w-4 h-4" />
+                      현수막 등록
+                    </Link>
+                  </Button>
+                )}
+
+                <Button
+                  variant="ghost"
+                  className="gap-2"
+                  onClick={() => signOut()}
+                >
+                  <LogOut className="w-4 h-4" />
+                  로그아웃
+                </Button>
+              </>
+            ) : (
+              <Button
+                className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+                onClick={() => setIsLoginDialogOpen(true)}
+              >
+                <UserIcon className="w-4 h-4" />
+                로그인
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -222,6 +267,12 @@ export default function Dashboard() {
       <PartyManagement
         open={isPartyManagementOpen}
         onOpenChange={setIsPartyManagementOpen}
+      />
+
+      {/* Login Dialog */}
+      <LoginDialog
+        open={isLoginDialogOpen}
+        onOpenChange={setIsLoginDialogOpen}
       />
     </div>
   );
@@ -529,6 +580,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
 function BannerCard({ banner, onClick }: { banner: BannerWithParty; onClick?: () => void }) {
   const isExpired = new Date(banner.end_date) < new Date();
   const { updateBanner, removeBanner } = useBannerActions();
+  const { hasPermission } = useAuth();
 
   return (
     <div
@@ -564,35 +616,39 @@ function BannerCard({ banner, onClick }: { banner: BannerWithParty; onClick?: ()
         <p className="text-sm text-gray-600 mb-1">
           {banner.start_date} ~ {banner.end_date}
         </p>
-        <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              // Simple edit - toggle active status for demo
-              updateBanner(banner.id, {
-                is_active: !banner.is_active,
-                updated_at: new Date().toISOString()
-              });
-            }}
-          >
-            {banner.is_active ? '비활성화' : '활성화'}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-red-600 hover:text-red-700"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (confirm('정말 삭제하시겠습니까?')) {
-                removeBanner(banner.id);
-              }
-            }}
-          >
-            삭제
-          </Button>
-        </div>
+        {hasPermission('banners', 'update') && (
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Simple edit - toggle active status for demo
+                updateBanner(banner.id, {
+                  is_active: !banner.is_active,
+                  updated_at: new Date().toISOString()
+                });
+              }}
+            >
+              {banner.is_active ? '비활성화' : '활성화'}
+            </Button>
+            {hasPermission('banners', 'delete') && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-red-600 hover:text-red-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm('정말 삭제하시겠습니까?')) {
+                    removeBanner(banner.id);
+                  }
+                }}
+              >
+                삭제
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
