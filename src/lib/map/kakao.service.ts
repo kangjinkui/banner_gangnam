@@ -67,24 +67,70 @@ export class KakaoMapService {
       }
 
       const document = data.documents[0];
-      const result = {
+      const coordinates = {
         lat: parseFloat(document.y),
         lng: parseFloat(document.x),
       };
 
-      // Extract administrative district if available
-      if (document.address?.region_3depth_name) {
-        result.administrative_district = document.address.region_3depth_name;
-      } else if (document.road_address?.region_3depth_name) {
-        result.administrative_district = document.road_address.region_3depth_name;
-      }
+      // Get administrative district using coord2regioncode for accurate result
+      const administrative_district = await this.getAdministrativeDistrictByCoordinates(
+        coordinates.lat,
+        coordinates.lng
+      );
 
-      return result;
+      return {
+        ...coordinates,
+        administrative_district,
+      };
     } catch (error) {
       if (error instanceof Error) {
         throw error;
       }
       throw new Error('주소 변환 중 오류가 발생했습니다.');
+    }
+  }
+
+  /**
+   * Get administrative district (행정동) using coordinates
+   * Uses Kakao coord2regioncode API to get accurate administrative district
+   */
+  static async getAdministrativeDistrictByCoordinates(lat: number, lng: number): Promise<string | undefined> {
+    if (!this.restApiKey) {
+      throw new Error('Kakao REST API key is not configured');
+    }
+
+    try {
+      const response = await fetch(
+        `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${lng}&y=${lat}`,
+        {
+          headers: {
+            Authorization: `KakaoAK ${this.restApiKey}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Kakao API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.documents || data.documents.length === 0) {
+        return undefined;
+      }
+
+      // Find the 'H' type document which represents administrative district (행정동)
+      const adminDistrict = data.documents.find((doc: any) => doc.region_type === 'H');
+
+      if (adminDistrict) {
+        // region_3depth_name contains the administrative district name (e.g., "삼성1동", "역삼2동")
+        return adminDistrict.region_3depth_name;
+      }
+
+      return undefined;
+    } catch (error) {
+      console.error('Failed to get administrative district:', error);
+      return undefined;
     }
   }
 
@@ -121,19 +167,19 @@ export class KakaoMapService {
 
       const document = data.documents[0];
       let address = '';
-      let administrative_district = '';
 
       if (document.road_address) {
         address = document.road_address.address_name;
-        administrative_district = document.road_address.region_3depth_name;
       } else if (document.address) {
         address = document.address.address_name;
-        administrative_district = document.address.region_3depth_name;
       }
+
+      // Get administrative district using coord2regioncode for accurate result
+      const administrative_district = await this.getAdministrativeDistrictByCoordinates(lat, lng);
 
       return {
         address,
-        administrative_district: administrative_district || undefined,
+        administrative_district,
       };
     } catch (error) {
       if (error instanceof Error) {
@@ -196,11 +242,10 @@ export class KakaoMapService {
   }
 
   /**
-   * Get administrative districts within Gangnam-gu
+   * Get administrative districts within Gangnam-gu (22 total)
    */
   static async getGangnamDistricts(): Promise<string[]> {
-    // Hardcoded list of administrative districts in Gangnam-gu
-    // In production, this could be fetched from an API or database
+    // Complete list of 22 administrative districts in Gangnam-gu
     return [
       '삼성1동',
       '삼성2동',
@@ -219,8 +264,11 @@ export class KakaoMapService {
       '신사동',
       '논현1동',
       '논현2동',
-      '압구정동',
-      '청담동',
+      '세곡동',
+      '일원본동',
+      '일원1동',
+      '일원2동',
+      '수서동',
     ];
   }
 

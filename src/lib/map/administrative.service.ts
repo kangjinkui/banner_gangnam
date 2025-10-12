@@ -4,7 +4,7 @@ import { Coordinates } from '@/types';
 
 // Administrative district service for Gangnam-gu
 export class AdministrativeService {
-  // Administrative districts in Gangnam-gu with their approximate center coordinates
+  // Administrative districts in Gangnam-gu with their approximate center coordinates (22 total)
   private static readonly GANGNAM_DISTRICTS = {
     '삼성1동': { lat: 37.5080, lng: 127.0563, bounds: { north: 37.5130, south: 37.5030, east: 127.0613, west: 127.0513 } },
     '삼성2동': { lat: 37.5050, lng: 127.0450, bounds: { north: 37.5100, south: 37.5000, east: 127.0500, west: 127.0400 } },
@@ -23,6 +23,11 @@ export class AdministrativeService {
     '신사동': { lat: 37.5180, lng: 127.0200, bounds: { north: 37.5230, south: 37.5130, east: 127.0250, west: 127.0150 } },
     '논현1동': { lat: 37.5120, lng: 127.0380, bounds: { north: 37.5170, south: 37.5070, east: 127.0430, west: 127.0330 } },
     '논현2동': { lat: 37.5050, lng: 127.0250, bounds: { north: 37.5100, south: 37.5000, east: 127.0300, west: 127.0200 } },
+    '세곡동': { lat: 37.4700, lng: 127.1050, bounds: { north: 37.4750, south: 37.4650, east: 127.1100, west: 127.1000 } },
+    '일원본동': { lat: 37.4850, lng: 127.0850, bounds: { north: 37.4900, south: 37.4800, east: 127.0900, west: 127.0800 } },
+    '일원1동': { lat: 37.4950, lng: 127.0900, bounds: { north: 37.5000, south: 37.4900, east: 127.0950, west: 127.0850 } },
+    '일원2동': { lat: 37.4800, lng: 127.0950, bounds: { north: 37.4850, south: 37.4750, east: 127.1000, west: 127.0900 } },
+    '수서동': { lat: 37.4850, lng: 127.1000, bounds: { north: 37.4900, south: 37.4800, east: 127.1050, west: 127.0950 } },
   };
 
   /**

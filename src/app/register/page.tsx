@@ -43,6 +43,13 @@ export default function BannerRegisterPage() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [parties, setParties] = useState<Party[]>([]);
+  const [isValidatingAddress, setIsValidatingAddress] = useState(false);
+  const [addressValidation, setAddressValidation] = useState<{
+    isValid: boolean;
+    district?: string;
+    coordinates?: { lat: number; lng: number };
+    error?: string;
+  } | null>(null);
 
   const form = useForm<BannerFormData>({
     resolver: zodResolver(bannerFormSchema),
@@ -92,6 +99,51 @@ export default function BannerRegisterPage() {
       reader.readAsDataURL(file);
       form.setValue('image', file);
     }
+  };
+
+  // Validate address and extract administrative district
+  const validateAddress = async (address: string) => {
+    if (!address || address.length < 5) {
+      setAddressValidation(null);
+      return;
+    }
+
+    setIsValidatingAddress(true);
+    try {
+      const response = await fetch(`/api/banners/validate-address?address=${encodeURIComponent(address)}`);
+      const result = await response.json();
+
+      if (result.success) {
+        setAddressValidation({
+          isValid: result.data.isValid,
+          district: result.data.administrative_district,
+          coordinates: result.data.coordinates,
+          error: result.data.error,
+        });
+      }
+    } catch (error) {
+      console.error('Address validation error:', error);
+      setAddressValidation({
+        isValid: false,
+        error: '주소 검증 중 오류가 발생했습니다.',
+      });
+    } finally {
+      setIsValidatingAddress(false);
+    }
+  };
+
+  // Debounce address validation
+  const [addressDebounceTimer, setAddressDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const handleAddressChange = (address: string) => {
+    if (addressDebounceTimer) {
+      clearTimeout(addressDebounceTimer);
+    }
+
+    const timer = setTimeout(() => {
+      validateAddress(address);
+    }, 800);
+
+    setAddressDebounceTimer(timer);
   };
 
   const onSubmit = async (data: BannerFormData) => {
@@ -256,7 +308,69 @@ export default function BannerRegisterPage() {
                         <FormItem>
                           <FormLabel>설치 주소</FormLabel>
                           <FormControl>
-                            <Input placeholder="예: 서울시 강남구 역삼동 123-45" {...field} />
+                            <div className="space-y-2">
+                              <Input
+                                placeholder="예: 서울시 강남구 역삼동 123-45"
+                                {...field}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  handleAddressChange(e.target.value);
+                                }}
+                              />
+                              {isValidatingAddress && (
+                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                                  <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                                  주소 확인 중...
+                                </div>
+                              )}
+                              {addressValidation && !isValidatingAddress && (
+                                <div
+                                  className={`p-3 rounded-lg text-sm ${
+                                    addressValidation.isValid
+                                      ? 'bg-green-50 border border-green-200'
+                                      : 'bg-red-50 border border-red-200'
+                                  }`}
+                                >
+                                  {addressValidation.isValid ? (
+                                    <div className="space-y-1">
+                                      <div className="flex items-center gap-2 text-green-700 font-medium">
+                                        <svg
+                                          className="w-5 h-5"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M5 13l4 4L19 7"
+                                          />
+                                        </svg>
+                                        유효한 주소입니다
+                                      </div>
+                                      {addressValidation.district && (
+                                        <div className="text-green-600 flex items-center gap-2">
+                                          <MapPin className="w-4 h-4" />
+                                          <span>
+                                            행정동: <strong>{addressValidation.district}</strong>
+                                          </span>
+                                        </div>
+                                      )}
+                                      {addressValidation.coordinates && (
+                                        <div className="text-green-600 text-xs">
+                                          좌표: {addressValidation.coordinates.lat.toFixed(6)}, {addressValidation.coordinates.lng.toFixed(6)}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="text-red-700">
+                                      {addressValidation.error || '주소를 확인할 수 없습니다.'}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </FormControl>
                           <FormDescription>
                             정확한 주소를 입력하면 자동으로 좌표와 행정동이 추출됩니다
