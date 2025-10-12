@@ -12,6 +12,7 @@ import { useBanners, useBannerActions, useBannerSummary, useExpiredBanners } fro
 import { BannerWithParty } from '@/types/banner';
 import { KakaoMap } from '@/features/map/components/KakaoMap';
 import { PartyManagement } from '@/features/parties/components/PartyManagement';
+import { BannerDetailDialog } from '@/features/banners/components/BannerDetailDialog';
 
 // Mock data - 실제로는 Supabase에서 가져올 데이터
 const mockBannersData: BannerWithParty[] = [
@@ -373,6 +374,8 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [filteredBanners, setFilteredBanners] = useState<BannerWithParty[]>(banners);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedBanner, setSelectedBanner] = useState<BannerWithParty | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   // Update filtered banners when original banners change
   useEffect(() => {
@@ -489,7 +492,14 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
         <h3 className="text-lg font-semibold">현수막 목록 ({filteredBanners.length}개)</h3>
         {filteredBanners.length > 0 ? (
           filteredBanners.map((banner) => (
-            <BannerCard key={banner.id} banner={banner} />
+            <BannerCard
+              key={banner.id}
+              banner={banner}
+              onClick={() => {
+                setSelectedBanner(banner);
+                setIsDetailDialogOpen(true);
+              }}
+            />
           ))
         ) : (
           <div className="text-center py-8 bg-gray-50 rounded-lg">
@@ -505,16 +515,26 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           </div>
         )}
       </div>
+
+      {/* Banner Detail Dialog */}
+      <BannerDetailDialog
+        banner={selectedBanner}
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+      />
     </div>
   );
 }
 
-function BannerCard({ banner }: { banner: BannerWithParty }) {
+function BannerCard({ banner, onClick }: { banner: BannerWithParty; onClick?: () => void }) {
   const isExpired = new Date(banner.end_date) < new Date();
   const { updateBanner, removeBanner } = useBannerActions();
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+    <div
+      className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+      onClick={onClick}
+    >
       <img
         src={banner.image_url || 'https://via.placeholder.com/150x100?text=No+Image'}
         alt={banner.text}
@@ -548,7 +568,8 @@ function BannerCard({ banner }: { banner: BannerWithParty }) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               // Simple edit - toggle active status for demo
               updateBanner(banner.id, {
                 is_active: !banner.is_active,
@@ -562,7 +583,8 @@ function BannerCard({ banner }: { banner: BannerWithParty }) {
             variant="ghost"
             size="sm"
             className="text-red-600 hover:text-red-700"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               if (confirm('정말 삭제하시겠습니까?')) {
                 removeBanner(banner.id);
               }
@@ -725,6 +747,9 @@ function StatsView() {
 }
 
 function ExpiredView({ banners }: { banners: BannerWithParty[] }) {
+  const [selectedBanner, setSelectedBanner] = useState<BannerWithParty | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
@@ -736,7 +761,14 @@ function ExpiredView({ banners }: { banners: BannerWithParty[] }) {
       {banners.length > 0 ? (
         <div className="space-y-4">
           {banners.map((banner) => (
-            <BannerCard key={banner.id} banner={banner} />
+            <BannerCard
+              key={banner.id}
+              banner={banner}
+              onClick={() => {
+                setSelectedBanner(banner);
+                setIsDetailDialogOpen(true);
+              }}
+            />
           ))}
         </div>
       ) : (
@@ -744,6 +776,13 @@ function ExpiredView({ banners }: { banners: BannerWithParty[] }) {
           <p className="text-gray-500">만료된 현수막이 없습니다.</p>
         </div>
       )}
+
+      {/* Banner Detail Dialog */}
+      <BannerDetailDialog
+        banner={selectedBanner}
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+      />
     </div>
   );
 }
