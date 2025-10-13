@@ -4,7 +4,8 @@
       "Bash(mkdir:*)",
       "Bash(npm install:*)",
       "Bash(curl:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(where:*)"
     ],
     "deny": [],
     "ask": []
