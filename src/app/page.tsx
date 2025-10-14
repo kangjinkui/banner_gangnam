@@ -427,6 +427,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedBanner, setSelectedBanner] = useState<BannerWithParty | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Update filtered banners when original banners change
   useEffect(() => {
@@ -478,15 +479,67 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
     setFilteredBanners(banners);
   };
 
+  // Export to Excel
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const filters: any = {};
+
+      // Apply current filters to export
+      if (searchQuery.trim()) {
+        filters.search = searchQuery;
+      }
+      if (selectedParty) {
+        filters.party = selectedParty;
+      }
+      if (selectedStatus) {
+        filters.status = selectedStatus;
+      }
+
+      const response = await fetch('/api/export/excel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filters }),
+      });
+
+      if (!response.ok) {
+        throw new Error('엑셀 다운로드에 실패했습니다.');
+      }
+
+      // Download the file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `banners_${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Excel export error:', error);
+      alert('엑셀 다운로드 중 오류가 발생했습니다.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div>
       {/* Filters */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">필터 및 검색</h3>
-          <Button variant="outline" className="gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={handleExportExcel}
+            disabled={isExporting || filteredBanners.length === 0}
+          >
             <Download className="w-4 h-4" />
-            엑셀 다운로드
+            {isExporting ? '다운로드 중...' : '엑셀 다운로드'}
           </Button>
         </div>
 
