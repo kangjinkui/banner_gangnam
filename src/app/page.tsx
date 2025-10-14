@@ -740,29 +740,84 @@ function StatsView() {
           </CardContent>
         </Card>
 
-        {/* District Statistics */}
+        {/* District Statistics - Banner count by party per district */}
         <Card>
           <CardHeader>
-            <CardTitle>지역별 현수막 현황</CardTitle>
+            <CardTitle>행정동별 정당 현수막 현황</CardTitle>
+            <CardDescription>각 행정동별 정당의 현수막 개수 (2개 초과 여부 확인)</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {Object.entries(districtStats)
-                .sort(([, a], [, b]) => b - a)
-                .map(([district, count]) => (
-                  <div key={district} className="flex items-center justify-between">
-                    <span className="font-medium">{district}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{ width: `${(count / summary.total) * 100}%` }}
-                        />
+            <div className="space-y-4">
+              {(() => {
+                // Calculate banner count by district and party
+                const districtPartyStats = banners.reduce((acc, banner) => {
+                  const district = banner.administrative_district || '미분류';
+                  const partyName = banner.party.name;
+
+                  if (!acc[district]) {
+                    acc[district] = {};
+                  }
+                  if (!acc[district][partyName]) {
+                    acc[district][partyName] = {
+                      count: 0,
+                      color: banner.party.color
+                    };
+                  }
+                  acc[district][partyName].count++;
+                  return acc;
+                }, {} as Record<string, Record<string, { count: number; color: string }>>);
+
+                return Object.entries(districtPartyStats)
+                  .sort(([a], [b]) => a.localeCompare(b))
+                  .map(([district, partyData]) => {
+                    const totalBanners = Object.values(partyData).reduce((sum, p) => sum + p.count, 0);
+                    const hasViolation = Object.values(partyData).some(p => p.count > 2);
+
+                    return (
+                      <div key={district} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-gray-900">{district}</span>
+                            <span className="text-sm text-gray-500">총 {totalBanners}개</span>
+                          </div>
+                          {hasViolation && (
+                            <Badge variant="destructive" className="gap-1">
+                              <AlertTriangle className="w-3 h-3" />
+                              2개 초과
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {Object.entries(partyData)
+                            .sort(([, a], [, b]) => b.count - a.count)
+                            .map(([party, stats]) => (
+                              <div
+                                key={party}
+                                className={`flex items-center justify-between p-2 rounded-md ${
+                                  stats.count > 2 ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className="w-3 h-3 rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: stats.color }}
+                                  />
+                                  <span className="text-sm font-medium truncate">{party}</span>
+                                </div>
+                                <span
+                                  className={`text-sm font-bold ${
+                                    stats.count > 2 ? 'text-red-600' : 'text-gray-700'
+                                  }`}
+                                >
+                                  {stats.count}개
+                                </span>
+                              </div>
+                            ))}
+                        </div>
                       </div>
-                      <span className="text-sm text-gray-600 min-w-[2rem]">{count}개</span>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  });
+              })()}
             </div>
           </CardContent>
         </Card>

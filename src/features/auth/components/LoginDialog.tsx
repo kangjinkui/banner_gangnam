@@ -44,11 +44,11 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         }, 2000);
       } else {
         await signIn({ email, password });
-        onOpenChange(false);
         // Reset form
         setEmail('');
         setPassword('');
         setName('');
+        onOpenChange(false);
       }
     } catch (err: any) {
       // Handle email not confirmed error
