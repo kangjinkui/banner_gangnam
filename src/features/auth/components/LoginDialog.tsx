@@ -36,6 +36,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         await signUp({ email, password, name });
         setSuccess(true);
         setError('');
+        setLoading(false);
         // Show success message briefly
         setTimeout(() => {
           setIsSignUp(false);
@@ -44,6 +45,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         }, 2000);
       } else {
         await signIn({ email, password });
+        setLoading(false);
         // Reset form
         setEmail('');
         setPassword('');
@@ -51,6 +53,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         onOpenChange(false);
       }
     } catch (err: any) {
+      setLoading(false);
       // Handle email not confirmed error
       if (err.message?.includes('Email not confirmed')) {
         setError(
@@ -63,8 +66,6 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
       } else {
         setError(err.message || '오류가 발생했습니다.');
       }
-    } finally {
-      setLoading(false);
     }
   };
 

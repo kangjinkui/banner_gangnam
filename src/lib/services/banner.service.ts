@@ -76,14 +76,17 @@ export class BannerService {
     const validatedInput = bannerCreateSchema.parse(bannerData);
 
     try {
-      // Step 1: Geocode address
+      // Step 1: Geocode address (includes administrative_district from Kakao API)
       const geocodeResult = await GeocodingService.addressToCoordinates(validatedInput.address);
 
-      // Step 2: Extract administrative district
-      const administrativeDistrict = await AdministrativeService.extractAdministrativeDistrict(
-        validatedInput.address,
-        geocodeResult
-      );
+      // Step 2: Use administrative district from geocoding result
+      // Kakao API's coord2regioncode provides the most accurate administrative district
+      const administrativeDistrict = geocodeResult.administrative_district || null;
+
+      // Log for debugging
+      console.log('Banner creation - Address:', validatedInput.address);
+      console.log('Banner creation - Coordinates:', geocodeResult.lat, geocodeResult.lng);
+      console.log('Banner creation - Administrative district:', administrativeDistrict);
 
       // Step 3: Upload image if provided
       let imageUrl: string | undefined;
@@ -134,10 +137,14 @@ export class BannerService {
       // Re-geocode if address has changed
       if (validatedInput.address && validatedInput.address !== existingBanner.address) {
         const geocodeResult = await GeocodingService.addressToCoordinates(validatedInput.address);
-        const administrativeDistrict = await AdministrativeService.extractAdministrativeDistrict(
-          validatedInput.address,
-          geocodeResult
-        );
+
+        // Use administrative district directly from Kakao API
+        const administrativeDistrict = geocodeResult.administrative_district || null;
+
+        // Log for debugging
+        console.log('Banner update - Address:', validatedInput.address);
+        console.log('Banner update - Coordinates:', geocodeResult.lat, geocodeResult.lng);
+        console.log('Banner update - Administrative district:', administrativeDistrict);
 
         updateData = {
           ...updateData,

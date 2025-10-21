@@ -11,6 +11,7 @@ import { MapPin, Calendar, Edit2, X } from 'lucide-react';
 import { BannerWithParty } from '@/types/banner';
 import { useBannerActions } from '@/store/banner.store';
 import { useAuth } from '@/contexts/AuthContext';
+import { PLACEHOLDER_IMAGES } from '@/lib/utils/placeholder';
 
 interface BannerDetailDialogProps {
   banner: BannerWithParty | null;
@@ -113,7 +114,7 @@ export function BannerDetailDialog({ banner, open, onOpenChange }: BannerDetailD
           {/* Banner Image */}
           <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
             <img
-              src={currentBanner.image_url || 'https://via.placeholder.com/800x400?text=No+Image'}
+              src={currentBanner.image_url || PLACEHOLDER_IMAGES.bannerLarge}
               alt={currentBanner.text}
               className="w-full h-full object-contain"
             />

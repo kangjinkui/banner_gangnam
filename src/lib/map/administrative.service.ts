@@ -96,15 +96,35 @@ export class AdministrativeService {
 
   /**
    * Extract administrative district from address using multiple methods
+   * IMPORTANT: Kakao API coord2regioncode is the most accurate source
    */
   static async extractAdministrativeDistrict(address: string, coordinates?: Coordinates): Promise<string | null> {
-    // Method 1: Try to extract from address string
-    const extractedFromAddress = GeocodingService.extractAdministrativeDistrict(address);
-    if (extractedFromAddress && this.GANGNAM_DISTRICTS.hasOwnProperty(extractedFromAddress)) {
-      return extractedFromAddress;
+    // Method 1 (MOST ACCURATE): Geocode the address and use Kakao API's administrative_district
+    try {
+      const geocodeResult = await GeocodingService.addressToCoordinates(address);
+
+      // Kakao API's administrative_district from coord2regioncode is most accurate
+      if (geocodeResult.administrative_district) {
+        // Verify it's a valid Gangnam district
+        if (this.GANGNAM_DISTRICTS.hasOwnProperty(geocodeResult.administrative_district)) {
+          return geocodeResult.administrative_district;
+        }
+
+        // Even if not in our predefined list, trust Kakao API result
+        console.log(`Administrative district from Kakao API: ${geocodeResult.administrative_district}`);
+        return geocodeResult.administrative_district;
+      }
+
+      // Fallback: Use coordinates from geocoding result
+      const districtFromGeocode = this.findDistrictByCoordinates(geocodeResult);
+      if (districtFromGeocode) {
+        return districtFromGeocode;
+      }
+    } catch (error) {
+      console.error('Failed to geocode address:', error);
     }
 
-    // Method 2: Use coordinates if provided
+    // Method 2: Use provided coordinates if geocoding failed
     if (coordinates) {
       const districtFromCoords = this.findDistrictByCoordinates(coordinates);
       if (districtFromCoords) {
@@ -112,22 +132,10 @@ export class AdministrativeService {
       }
     }
 
-    // Method 3: Geocode the address and find district
-    try {
-      const geocodeResult = await GeocodingService.addressToCoordinates(address);
-
-      // First try the administrative_district from geocoding API
-      if (geocodeResult.administrative_district && this.GANGNAM_DISTRICTS.hasOwnProperty(geocodeResult.administrative_district)) {
-        return geocodeResult.administrative_district;
-      }
-
-      // Then try to find by coordinates
-      const districtFromGeocode = this.findDistrictByCoordinates(geocodeResult);
-      if (districtFromGeocode) {
-        return districtFromGeocode;
-      }
-    } catch (error) {
-      console.error('Failed to extract administrative district:', error);
+    // Method 3 (LEAST ACCURATE): Try to extract from address string as last resort
+    const extractedFromAddress = GeocodingService.extractAdministrativeDistrict(address);
+    if (extractedFromAddress && this.GANGNAM_DISTRICTS.hasOwnProperty(extractedFromAddress)) {
+      return extractedFromAddress;
     }
 
     return null;

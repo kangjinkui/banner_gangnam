@@ -179,29 +179,17 @@ export default function BannerRegisterPage() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        // Create banner for store (with party info)
-        const newBanner: BannerWithParty = {
-          ...result.data,
-          party: {
-            id: selectedParty.id,
-            name: selectedParty.name,
-            color: selectedParty.color,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        };
+        // Show success message with administrative district info
+        const districtInfo = result.data.administrative_district
+          ? ` (${result.data.administrative_district})`
+          : '';
 
-        // Add banner to store
-        addBanner(newBanner);
-
-        // Show success message
         toast({
           title: '현수막이 등록되었습니다',
-          description: `${data.text} - ${data.address}`,
+          description: `${data.text} - ${data.address}${districtInfo}`,
         });
 
-        // Redirect to dashboard
+        // Redirect to dashboard (page will fetch fresh data from API)
         router.push('/');
       } else {
         throw new Error(result.error || '현수막 등록에 실패했습니다.');

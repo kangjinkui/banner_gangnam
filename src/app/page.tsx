@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
 import { useBanners, useBannerActions, useBannerSummary, useExpiredBanners } from '@/store/banner.store';
+import { useDeleteBanner } from '@/hooks/use-banners';
 import { BannerWithParty } from '@/types/banner';
 import { KakaoMap } from '@/features/map/components/KakaoMap';
 import { PartyManagement } from '@/features/parties/components/PartyManagement';
@@ -16,6 +17,7 @@ import { BannerDetailDialog } from '@/features/banners/components/BannerDetailDi
 import { LoginDialog } from '@/features/auth/components/LoginDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, User as UserIcon } from 'lucide-react';
+import { PLACEHOLDER_IMAGES } from '@/lib/utils/placeholder';
 
 // Mock data - 실제로는 Supabase에서 가져올 데이터
 const mockBannersData: BannerWithParty[] = [
@@ -29,7 +31,7 @@ const mockBannersData: BannerWithParty[] = [
     administrative_district: '역삼1동',
     start_date: '2024-01-15',
     end_date: '2024-03-15',
-    image_url: 'https://via.placeholder.com/150x100?text=Banner',
+    image_url: PLACEHOLDER_IMAGES.banner,
     is_active: true,
     created_at: '2024-01-15T00:00:00Z',
     updated_at: '2024-01-15T00:00:00Z',
@@ -52,7 +54,7 @@ const mockBannersData: BannerWithParty[] = [
     administrative_district: '서초1동',
     start_date: '2024-02-01',
     end_date: '2024-02-28',
-    image_url: 'https://via.placeholder.com/150x100?text=Banner',
+    image_url: PLACEHOLDER_IMAGES.banner,
     is_active: true,
     created_at: '2024-02-01T00:00:00Z',
     updated_at: '2024-02-01T00:00:00Z',
@@ -75,7 +77,7 @@ const mockBannersData: BannerWithParty[] = [
     administrative_district: '논현1동',
     start_date: '2024-01-20',
     end_date: '2024-04-20',
-    image_url: 'https://via.placeholder.com/150x100?text=Banner',
+    image_url: PLACEHOLDER_IMAGES.banner,
     is_active: true,
     created_at: '2024-01-20T00:00:00Z',
     updated_at: '2024-01-20T00:00:00Z',
@@ -125,6 +127,19 @@ export default function Dashboard() {
     };
 
     fetchData();
+
+    // Also fetch data when page becomes visible (e.g., after navigation back)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [setBanners]);
 
   return (
@@ -354,7 +369,7 @@ function MapView() {
           <CardContent className="p-4">
             <div className="flex items-start gap-4">
               <img
-                src={selectedBanner.image_url || 'https://via.placeholder.com/100x80'}
+                src={selectedBanner.image_url || PLACEHOLDER_IMAGES.bannerSmall}
                 alt={selectedBanner.text}
                 className="w-20 h-16 rounded-lg object-cover bg-gray-100"
               />
@@ -632,8 +647,9 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
 
 function BannerCard({ banner, onClick }: { banner: BannerWithParty; onClick?: () => void }) {
   const isExpired = new Date(banner.end_date) < new Date();
-  const { updateBanner, removeBanner } = useBannerActions();
+  const { updateBanner } = useBannerActions();
   const { hasPermission } = useAuth();
+  const deleteBanner = useDeleteBanner();
 
   return (
     <div
@@ -641,7 +657,7 @@ function BannerCard({ banner, onClick }: { banner: BannerWithParty; onClick?: ()
       onClick={onClick}
     >
       <img
-        src={banner.image_url || 'https://via.placeholder.com/150x100?text=No+Image'}
+        src={banner.image_url || PLACEHOLDER_IMAGES.banner}
         alt={banner.text}
         className="w-20 h-16 rounded-lg object-cover bg-gray-100"
       />
@@ -693,11 +709,12 @@ function BannerCard({ banner, onClick }: { banner: BannerWithParty; onClick?: ()
                 onClick={(e) => {
                   e.stopPropagation();
                   if (confirm('정말 삭제하시겠습니까?')) {
-                    removeBanner(banner.id);
+                    deleteBanner.mutate({ id: banner.id, hardDelete: true });
                   }
                 }}
+                disabled={deleteBanner.isPending}
               >
-                삭제
+                {deleteBanner.isPending ? '삭제 중...' : '삭제'}
               </Button>
             )}
           </div>
