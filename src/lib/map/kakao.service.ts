@@ -274,14 +274,15 @@ export class KakaoMapService {
 
   /**
    * Check if coordinates are within Gangnam-gu bounds
+   * Updated bounds to cover entire Gangnam-gu including southern areas (Suseo, Segok)
    */
   static isWithinGangnamBounds(coordinates: Coordinates): boolean {
-    // Approximate bounds of Gangnam-gu
+    // Extended bounds of Gangnam-gu to cover all areas
     const bounds = {
-      north: 37.5400,
-      south: 37.4600,
-      east: 127.0800,
-      west: 127.0000,
+      north: 37.5500,  // Extended north (Cheongdam area)
+      south: 37.4400,  // Extended south (Suseo, Segok area)
+      east: 127.1300,  // Extended east (Suseo area)
+      west: 126.9800,  // Extended west (Sinsa, Apgujeong area)
     };
 
     return (

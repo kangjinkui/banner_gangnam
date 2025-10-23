@@ -445,8 +445,10 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   const [isExporting, setIsExporting] = useState(false);
 
   // Update filtered banners when original banners change
+  // Default: show only active banners
   useEffect(() => {
-    setFilteredBanners(banners);
+    const activeBanners = banners.filter(banner => banner.is_active);
+    setFilteredBanners(activeBanners);
   }, [banners]);
 
   // Handle search/filter logic
@@ -468,6 +470,11 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       result = result.filter(banner => banner.party.name === selectedParty);
     }
 
+    // Always filter out inactive banners by default unless specifically requested
+    if (selectedStatus !== 'inactive') {
+      result = result.filter(banner => banner.is_active);
+    }
+
     // Filter by status
     if (selectedStatus) {
       const now = new Date();
@@ -479,6 +486,8 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
         result = result.filter(banner =>
           new Date(banner.end_date) < now
         );
+      } else if (selectedStatus === 'inactive') {
+        result = result.filter(banner => !banner.is_active);
       }
     }
 
@@ -586,6 +595,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
             <SelectContent>
               <SelectItem value="active">활성</SelectItem>
               <SelectItem value="expired">만료</SelectItem>
+              <SelectItem value="inactive">비활성</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -690,13 +700,36 @@ function BannerCard({ banner, onClick }: { banner: BannerWithParty; onClick?: ()
             <Button
               variant="ghost"
               size="sm"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                // Simple edit - toggle active status for demo
-                updateBanner(banner.id, {
-                  is_active: !banner.is_active,
-                  updated_at: new Date().toISOString()
-                });
+                const newStatus = !banner.is_active;
+                const confirmMessage = newStatus
+                  ? '현수막을 활성화하시겠습니까?'
+                  : '현수막을 비활성화하시겠습니까?\n비활성화된 현수막은 지도와 목록에 표시되지 않습니다.';
+
+                if (!confirm(confirmMessage)) return;
+
+                try {
+                  const response = await fetch(`/api/banners/${banner.id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_active: newStatus }),
+                  });
+
+                  if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                      updateBanner(banner.id, result.data);
+                      alert(newStatus ? '현수막이 활성화되었습니다.' : '현수막이 비활성화되었습니다.');
+                    }
+                  } else {
+                    const error = await response.json();
+                    alert(error.error || '상태 변경에 실패했습니다.');
+                  }
+                } catch (error) {
+                  console.error('Toggle active status error:', error);
+                  alert('상태 변경 중 오류가 발생했습니다.');
+                }
               }}
             >
               {banner.is_active ? '비활성화' : '활성화'}
@@ -725,10 +758,13 @@ function BannerCard({ banner, onClick }: { banner: BannerWithParty; onClick?: ()
 }
 
 function StatsView() {
-  const banners = useBanners();
+  const allBanners = useBanners();
   const summary = useBannerSummary();
 
-  // Calculate statistics
+  // Filter only active banners for statistics
+  const banners = allBanners.filter(banner => banner.is_active);
+
+  // Calculate statistics (only active banners)
   const partyStats = banners.reduce((acc, banner) => {
     const partyName = banner.party.name;
     if (!acc[partyName]) {

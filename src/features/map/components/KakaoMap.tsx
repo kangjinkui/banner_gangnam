@@ -52,107 +52,154 @@ export function KakaoMap({
     markersRef.current.forEach(marker => marker.setMap(null));
     markersRef.current = [];
 
-    // 새 마커 추가
+    // 새 마커 추가 (활성화된 현수막만)
     banners.forEach(banner => {
-      if (!banner.lat || !banner.lng) return;
+      if (!banner.lat || !banner.lng || !banner.is_active) return;
 
       const position = new window.kakao.maps.LatLng(banner.lat, banner.lng);
 
-      // 커스텀 마커 이미지 생성 (정당별 색상 구분)
-      let markerImage;
-      try {
-        const markerImageUrl = banner.party.marker_icon_url || createColoredMarkerSvg(banner.party.color);
-        const imageSize = new window.kakao.maps.Size(40, 50);
-        const imageOption = { offset: new window.kakao.maps.Point(20, 50) };
+      // CustomOverlay를 사용하여 안정적인 마커 생성
+      const markerContent = document.createElement('div');
+      markerContent.innerHTML = `
+        <div style="position: relative; cursor: pointer; transform: translate(-20px, -50px);">
+          <!-- 그림자 -->
+          <div style="
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 4px;
+            background: radial-gradient(ellipse, rgba(0,0,0,0.3), transparent);
+            border-radius: 50%;
+          "></div>
+          <!-- 마커 핀 -->
+          <div style="
+            width: 32px;
+            height: 40px;
+            background: ${banner.party.color};
+            border: 3px solid white;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            position: relative;
+          ">
+            <!-- 내부 점 -->
+            <div style="
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%) rotate(45deg);
+              width: 10px;
+              height: 10px;
+              background: white;
+              border-radius: 50%;
+            "></div>
+          </div>
+        </div>
+      `;
 
-        markerImage = new window.kakao.maps.MarkerImage(
-          markerImageUrl,
-          imageSize,
-          imageOption
-        );
-      } catch (error) {
-        console.error('Failed to create marker image:', error);
-        // Fallback to default marker with custom content
-        markerImage = null;
-      }
-
-      const marker = new window.kakao.maps.Marker({
+      const overlay = new window.kakao.maps.CustomOverlay({
         position: position,
-        image: markerImage,
+        content: markerContent,
         map: kakaoMapRef.current,
-        title: banner.party.name // 마커 호버 시 툴팁
+        zIndex: 3
       });
 
-      // 인포윈도우 생성 (현수막 정보 팝업)
+      // 마커처럼 사용하기 위한 객체 생성
+      const marker = {
+        overlay: overlay,
+        position: position,
+        setMap: (map: any) => overlay.setMap(map),
+        getPosition: () => position
+      };
+
+      // 인포윈도우도 CustomOverlay로 생성
       const imageUrl = banner.image_url || banner.thumbnail_url || PLACEHOLDER_IMAGES.mapPopup;
       const isExpired = new Date(banner.end_date) < new Date();
 
-      const infowindow = new window.kakao.maps.InfoWindow({
-        content: `
-          <div style="padding: 12px; min-width: 280px; max-width: 320px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-            <div style="margin-bottom: 10px; border-radius: 6px; overflow: hidden; position: relative;">
-              <img src="${imageUrl}" alt="${banner.text}"
-                   style="width: 100%; height: 120px; object-fit: cover; display: block; background: #f3f4f6;"
-                   onerror="this.src='${PLACEHOLDER_IMAGES.mapPopup}'"/>
-              ${isExpired ? `
-                <div style="position: absolute; top: 6px; right: 6px; background: #ef4444; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
-                  만료됨
-                </div>
-              ` : ''}
-            </div>
-            <div style="background-color: ${banner.party.color}; color: white; padding: 6px 10px; border-radius: 4px; font-weight: 600; font-size: 13px; margin-bottom: 8px; display: inline-block;">
-              ${banner.party.name}
-            </div>
-            <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px; color: #1a1a1a; line-height: 1.4;">
-              ${banner.text}
-            </div>
-            <div style="font-size: 13px; color: #666; margin-bottom: 4px; display: flex; align-items: start; gap: 4px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                <circle cx="12" cy="10" r="3"></circle>
-              </svg>
-              <span style="line-height: 1.4;">${banner.address}</span>
-            </div>
-            ${banner.administrative_district ? `
-              <div style="font-size: 12px; color: #888; margin-top: 4px;">
-                📍 행정동: ${banner.administrative_district}
-              </div>
-            ` : ''}
-            <div style="font-size: 11px; color: #999; margin-top: 6px; padding-top: 6px; border-top: 1px solid #eee; display: flex; align-items: center; gap: 4px;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
-              ${banner.start_date} ~ ${banner.end_date}
-            </div>
-            ${banner.memo ? `
-              <div style="font-size: 12px; color: #666; margin-top: 6px; padding-top: 6px; border-top: 1px solid #f0f0f0; font-style: italic;">
-                💬 ${banner.memo.substring(0, 50)}${banner.memo.length > 50 ? '...' : ''}
+      const infoContent = document.createElement('div');
+      infoContent.style.display = 'none'; // 기본적으로 숨김
+      infoContent.innerHTML = `
+        <div style="padding: 12px; min-width: 280px; max-width: 320px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 10px;">
+          <div style="margin-bottom: 10px; border-radius: 6px; overflow: hidden; position: relative;">
+            <img src="${imageUrl}" alt="${banner.text}"
+                 style="width: 100%; height: 120px; object-fit: cover; display: block; background: #f3f4f6;"
+                 onerror="this.src='${PLACEHOLDER_IMAGES.mapPopup}'"/>
+            ${isExpired ? `
+              <div style="position: absolute; top: 6px; right: 6px; background: #ef4444; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+                만료됨
               </div>
             ` : ''}
           </div>
-        `,
-        removable: false
+          <div style="background-color: ${banner.party.color}; color: white; padding: 6px 10px; border-radius: 4px; font-weight: 600; font-size: 13px; margin-bottom: 8px; display: inline-block;">
+            ${banner.party.name}
+          </div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px; color: #1a1a1a; line-height: 1.4;">
+            ${banner.text}
+          </div>
+          <div style="font-size: 13px; color: #666; margin-bottom: 4px; display: flex; align-items: start; gap: 4px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span style="line-height: 1.4;">${banner.address}</span>
+          </div>
+          ${banner.administrative_district ? `
+            <div style="font-size: 12px; color: #888; margin-top: 4px;">
+              📍 행정동: ${banner.administrative_district}
+            </div>
+          ` : ''}
+          <div style="font-size: 11px; color: #999; margin-top: 6px; padding-top: 6px; border-top: 1px solid #eee; display: flex; align-items: center; gap: 4px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            ${banner.start_date} ~ ${banner.end_date}
+          </div>
+          ${banner.memo ? `
+            <div style="font-size: 12px; color: #666; margin-top: 6px; padding-top: 6px; border-top: 1px solid #f0f0f0; font-style: italic;">
+              💬 ${banner.memo.substring(0, 50)}${banner.memo.length > 50 ? '...' : ''}
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      const infoOverlay = new window.kakao.maps.CustomOverlay({
+        content: infoContent,
+        position: position,
+        xAnchor: 0.5,
+        yAnchor: 1.8,
+        zIndex: 999
       });
 
-      // 마커 호버 시 인포윈도우 표시
-      window.kakao.maps.event.addListener(marker, 'mouseover', () => {
-        infowindow.open(kakaoMapRef.current, marker);
+      // CustomOverlay에 이벤트 리스너 추가
+      let isInfoVisible = false;
+
+      markerContent.addEventListener('mouseover', () => {
+        infoContent.style.display = 'block';
+        infoOverlay.setMap(kakaoMapRef.current);
+        isInfoVisible = true;
       });
 
-      window.kakao.maps.event.addListener(marker, 'mouseout', () => {
-        infowindow.close();
+      markerContent.addEventListener('mouseout', () => {
+        infoContent.style.display = 'none';
+        infoOverlay.setMap(null);
+        isInfoVisible = false;
       });
 
-      // 마커 클릭 이벤트
-      window.kakao.maps.event.addListener(marker, 'click', () => {
+      markerContent.addEventListener('click', () => {
         // 클릭 시 인포윈도우 토글
-        if (infowindow.getMap()) {
-          infowindow.close();
+        if (isInfoVisible) {
+          infoContent.style.display = 'none';
+          infoOverlay.setMap(null);
+          isInfoVisible = false;
         } else {
-          infowindow.open(kakaoMapRef.current, marker);
+          infoContent.style.display = 'block';
+          infoOverlay.setMap(kakaoMapRef.current);
+          isInfoVisible = true;
         }
 
         // 상세 정보 다이얼로그도 열기

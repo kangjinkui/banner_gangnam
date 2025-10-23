@@ -122,6 +122,59 @@ export async function PUT(
   }
 }
 
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    if (!id) {
+      return NextResponse.json({
+        success: false,
+        error: '현수막 ID가 필요합니다.',
+      }, { status: 400 });
+    }
+
+    const body = await request.json();
+
+    // Validate input
+    const validatedData = bannerUpdateSchema.parse(body);
+
+    // Update banner
+    const banner = await BannerService.update(id, validatedData);
+
+    return NextResponse.json({
+      success: true,
+      data: banner,
+      message: '현수막이 성공적으로 수정되었습니다.',
+    });
+  } catch (error) {
+    console.error('PATCH /api/banners/[id] error:', error);
+
+    if (error instanceof Error) {
+      if (error.message.includes('찾을 수 없습니다')) {
+        return NextResponse.json({
+          success: false,
+          error: error.message,
+        }, { status: 404 });
+      }
+
+      if (error.message.includes('validation') || error.message.includes('올바른')) {
+        return NextResponse.json({
+          success: false,
+          error: error.message,
+        }, { status: 400 });
+      }
+    }
+
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Internal server error',
+    }, { status: 500 });
+  }
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

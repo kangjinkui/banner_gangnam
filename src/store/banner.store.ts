@@ -186,7 +186,8 @@ export const useActiveBanners = () => useBannerStore((state) =>
 
 export const useExpiredBanners = () => useBannerStore((state) => {
   const now = new Date();
-  return state.banners.filter((banner) => new Date(banner.end_date) < now);
+  // Only count active banners
+  return state.banners.filter((banner) => banner.is_active && new Date(banner.end_date) < now);
 });
 
 export const useBannerById = (id: string | undefined) => useBannerStore((state) =>
@@ -208,12 +209,14 @@ export const useDistrictsFromBanners = () => useBannerStore((state) => {
 
 export const useBannerSummary = () => useBannerStore((state) => {
   const now = new Date();
-  const active = state.banners.filter((b) => b.is_active).length;
-  const expired = state.banners.filter((b) => new Date(b.end_date) < now).length;
-  const upcoming = state.banners.filter((b) => new Date(b.start_date) > now).length;
+  // Only count active banners for statistics
+  const activeBanners = state.banners.filter((b) => b.is_active);
+  const active = activeBanners.length;
+  const expired = activeBanners.filter((b) => new Date(b.end_date) < now).length;
+  const upcoming = activeBanners.filter((b) => new Date(b.start_date) > now).length;
 
   return {
-    total: state.banners.length,
+    total: activeBanners.length, // Only active banners
     active,
     expired,
     upcoming,

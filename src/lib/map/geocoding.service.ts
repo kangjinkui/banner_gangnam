@@ -84,7 +84,9 @@ export class GeocodingService {
   }> {
     try {
       const result = await this.addressToCoordinates(address);
-      const isInGangnam = KakaoMapService.isWithinGangnamBounds(result);
+
+      // Use Kakao API to verify the district via coord2regioncode
+      const isInGangnam = await this.verifyGangnamDistrict(result.lat, result.lng);
 
       if (!isInGangnam) {
         return {
@@ -103,6 +105,47 @@ export class GeocodingService {
         isValid: false,
         error: error instanceof Error ? error.message : '주소 검증 중 오류가 발생했습니다.',
       };
+    }
+  }
+
+  /**
+   * Verify if coordinates are in Gangnam-gu using Kakao coord2regioncode API
+   */
+  private static async verifyGangnamDistrict(lat: number, lng: number): Promise<boolean> {
+    try {
+      const response = await fetch(
+        `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${lng}&y=${lat}`,
+        {
+          headers: {
+            Authorization: `KakaoAK ${process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        // If API fails, fallback to bounds check
+        return KakaoMapService.isWithinGangnamBounds({ lat, lng });
+      }
+
+      const data = await response.json();
+
+      if (!data.documents || data.documents.length === 0) {
+        return false;
+      }
+
+      // Check both 'B' (법정동) and 'H' (행정동) type documents
+      for (const doc of data.documents) {
+        // region_2depth_name contains the district name (e.g., "강남구")
+        if (doc.region_2depth_name === '강남구') {
+          return true;
+        }
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Failed to verify Gangnam district:', error);
+      // Fallback to bounds check if API fails
+      return KakaoMapService.isWithinGangnamBounds({ lat, lng });
     }
   }
 
