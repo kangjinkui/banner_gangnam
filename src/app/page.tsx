@@ -96,6 +96,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('목록');
   const [isPartyManagementOpen, setIsPartyManagementOpen] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
+  const [activePartyCount, setActivePartyCount] = useState(0);
 
   // Store hooks
   const banners = useBanners();
@@ -110,7 +111,8 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/banners');
+        // Fetch all banners (including inactive) with higher limit for filtering
+        const response = await fetch('/api/banners?limit=1000');
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
@@ -142,6 +144,27 @@ export default function Dashboard() {
     };
   }, [setBanners]);
 
+  // Fetch active party count
+  useEffect(() => {
+    const fetchPartyCount = async () => {
+      try {
+        const response = await fetch('/api/parties');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            // Count only active parties
+            const activeCount = result.data.filter((p: any) => p.is_active).length;
+            setActivePartyCount(activeCount);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch party count:', error);
+      }
+    };
+
+    fetchPartyCount();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -159,16 +182,18 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             {isAuthenticated && user ? (
               <>
-                {/* User Info */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
-                  <UserIcon className="w-4 h-4 text-gray-600" />
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900">{user.email}</p>
-                    <p className="text-xs text-gray-500">
-                      {user.role === 'admin' ? '관리자' : '일반 사용자'}
-                    </p>
+                {/* User Info - clickable to go to profile */}
+                <Link href="/profile">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                    <UserIcon className="w-4 h-4 text-gray-600" />
+                    <div className="text-sm">
+                      <p className="font-medium text-gray-900">{user.email}</p>
+                      <p className="text-xs text-gray-500">
+                        {user.role === 'admin' ? '관리자' : '일반 사용자'}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                </Link>
 
                 {/* Admin-only buttons */}
                 {hasPermission('parties', 'update') && (
@@ -225,8 +250,8 @@ export default function Dashboard() {
           />
           <StatsCard
             title="활성 정당"
-            value={8}
-            change={1}
+            value={activePartyCount}
+            change={0}
             icon={<Users className="w-6 h-6 text-red-600" />}
             color="bg-red-100"
           />
@@ -326,7 +351,9 @@ function StatsCard({ title, value, change, icon, color }: {
 }
 
 function MapView() {
-  const banners = useBanners();
+  const allBanners = useBanners();
+  // Only show active banners on the map
+  const banners = allBanners.filter(b => b.is_active);
   const [selectedBanner, setSelectedBanner] = useState<BannerWithParty | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
@@ -443,6 +470,9 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   const [selectedBanner, setSelectedBanner] = useState<BannerWithParty | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Get unique parties from banners
+  const uniqueParties = Array.from(new Set(banners.map(b => b.party.name))).sort();
 
   // Update filtered banners when original banners change
   // Default: show only active banners
@@ -583,9 +613,11 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
               <SelectValue placeholder="정당 선택" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="더불어민주당">더불어민주당</SelectItem>
-              <SelectItem value="국민의힘">국민의힘</SelectItem>
-              <SelectItem value="정의당">정의당</SelectItem>
+              {uniqueParties.map(partyName => (
+                <SelectItem key={partyName} value={partyName}>
+                  {partyName}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>

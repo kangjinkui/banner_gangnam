@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogIn, UserPlus, AlertCircle } from 'lucide-react';
+import { ForgotPasswordDialog } from './ForgotPasswordDialog';
 
 interface LoginDialogProps {
   open: boolean;
@@ -22,6 +23,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   const { signIn, signUp } = useAuth();
 
@@ -164,7 +166,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             {loading ? '처리 중...' : isSignUp ? '회원가입' : '로그인'}
           </Button>
 
-          <div className="text-center">
+          <div className="text-center space-y-2">
             <Button
               type="button"
               variant="link"
@@ -175,6 +177,22 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                 ? '이미 계정이 있으신가요? 로그인'
                 : '계정이 없으신가요? 회원가입'}
             </Button>
+
+            {!isSignUp && (
+              <div>
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={() => {
+                    onOpenChange(false);
+                    setIsForgotPasswordOpen(true);
+                  }}
+                  className="text-sm text-gray-600 hover:text-gray-900"
+                >
+                  비밀번호를 잊으셨나요?
+                </Button>
+              </div>
+            )}
           </div>
         </form>
 
@@ -186,6 +204,12 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
           </ul>
         </div>
       </DialogContent>
+
+      {/* Forgot Password Dialog */}
+      <ForgotPasswordDialog
+        open={isForgotPasswordOpen}
+        onOpenChange={setIsForgotPasswordOpen}
+      />
     </Dialog>
   );
 }
