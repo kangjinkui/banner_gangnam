@@ -377,4 +377,14 @@ export class BannerService {
 
     return data;
   }
+
+  /**
+   * Reverse geocode coordinates to address
+   */
+  static async reverseGeocode(lat: number, lng: number): Promise<{
+    address: string;
+    administrative_district: string;
+  }> {
+    return GeocodingService.coordinatesToAddress(lat, lng);
+  }
 }

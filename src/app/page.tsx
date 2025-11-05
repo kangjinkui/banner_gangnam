@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { MapPin, Users, Calendar, AlertTriangle, Download, Search, Filter } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
@@ -470,6 +471,11 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   const [selectedBanner, setSelectedBanner] = useState<BannerWithParty | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedBannerIds, setSelectedBannerIds] = useState<Set<string>>(new Set());
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
+  // Store hooks
+  const { setBanners } = useBannerActions();
 
   // Get unique parties from banners
   const uniqueParties = Array.from(new Set(banners.map(b => b.party.name))).sort();
@@ -531,6 +537,143 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
     setSelectedParty('');
     setSelectedStatus('');
     setFilteredBanners(banners);
+  };
+
+  // Handle checkbox toggle
+  const handleToggleSelect = (bannerId: string) => {
+    setSelectedBannerIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(bannerId)) {
+        newSet.delete(bannerId);
+      } else {
+        newSet.add(bannerId);
+      }
+      return newSet;
+    });
+  };
+
+  // Handle select all
+  const handleSelectAll = () => {
+    if (selectedBannerIds.size === filteredBanners.length) {
+      setSelectedBannerIds(new Set());
+    } else {
+      setSelectedBannerIds(new Set(filteredBanners.map(b => b.id)));
+    }
+  };
+
+  // Bulk activate
+  const handleBulkActivate = async () => {
+    if (selectedBannerIds.size === 0) return;
+
+    if (!confirm(`선택한 ${selectedBannerIds.size}개의 현수막을 활성화하시겠습니까?`)) return;
+
+    setIsBulkProcessing(true);
+    try {
+      const promises = Array.from(selectedBannerIds).map(id =>
+        fetch(`/api/banners/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_active: true }),
+        })
+      );
+
+      const results = await Promise.all(promises);
+      const successCount = results.filter(r => r.ok).length;
+
+      alert(`${successCount}개의 현수막이 활성화되었습니다.`);
+
+      // Refresh data
+      const response = await fetch('/api/banners?limit=1000');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setBanners(result.data);
+        }
+      }
+
+      setSelectedBannerIds(new Set());
+    } catch (error) {
+      console.error('Bulk activate error:', error);
+      alert('일괄 활성화 중 오류가 발생했습니다.');
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  // Bulk deactivate
+  const handleBulkDeactivate = async () => {
+    if (selectedBannerIds.size === 0) return;
+
+    if (!confirm(`선택한 ${selectedBannerIds.size}개의 현수막을 비활성화하시겠습니까?`)) return;
+
+    setIsBulkProcessing(true);
+    try {
+      const promises = Array.from(selectedBannerIds).map(id =>
+        fetch(`/api/banners/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_active: false }),
+        })
+      );
+
+      const results = await Promise.all(promises);
+      const successCount = results.filter(r => r.ok).length;
+
+      alert(`${successCount}개의 현수막이 비활성화되었습니다.`);
+
+      // Refresh data
+      const response = await fetch('/api/banners?limit=1000');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setBanners(result.data);
+        }
+      }
+
+      setSelectedBannerIds(new Set());
+    } catch (error) {
+      console.error('Bulk deactivate error:', error);
+      alert('일괄 비활성화 중 오류가 발생했습니다.');
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
+
+  // Bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedBannerIds.size === 0) return;
+
+    if (!confirm(`선택한 ${selectedBannerIds.size}개의 현수막을 영구 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
+
+    setIsBulkProcessing(true);
+    try {
+      const promises = Array.from(selectedBannerIds).map(id =>
+        fetch(`/api/banners/${id}?hardDelete=true`, {
+          method: 'DELETE',
+        })
+      );
+
+      const results = await Promise.all(promises);
+      const successCount = results.filter(r => r.ok).length;
+
+      alert(`${successCount}개의 현수막이 삭제되었습니다.`);
+
+      // Refresh data
+      const response = await fetch('/api/banners?limit=1000');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          setBanners(result.data);
+        }
+      }
+
+      setSelectedBannerIds(new Set());
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+      alert('일괄 삭제 중 오류가 발생했습니다.');
+    } finally {
+      setIsBulkProcessing(false);
+    }
   };
 
   // Export to Excel
@@ -648,14 +791,73 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
         </div>
       </div>
 
+      {/* Bulk Actions */}
+      {selectedBannerIds.size > 0 && (
+        <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-indigo-900">
+                {selectedBannerIds.size}개 선택됨
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedBannerIds(new Set())}
+              >
+                선택 해제
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBulkActivate}
+                disabled={isBulkProcessing}
+              >
+                일괄 활성화
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBulkDeactivate}
+                disabled={isBulkProcessing}
+              >
+                일괄 비활성화
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+                disabled={isBulkProcessing}
+              >
+                일괄 삭제
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Banner List */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">현수막 목록 ({filteredBanners.length}개)</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">현수막 목록 ({filteredBanners.length}개)</h3>
+          {filteredBanners.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSelectAll}
+            >
+              {selectedBannerIds.size === filteredBanners.length ? '전체 해제' : '전체 선택'}
+            </Button>
+          )}
+        </div>
         {filteredBanners.length > 0 ? (
           filteredBanners.map((banner) => (
             <BannerCard
               key={banner.id}
               banner={banner}
+              isSelected={selectedBannerIds.has(banner.id)}
+              onToggleSelect={() => handleToggleSelect(banner.id)}
               onClick={() => {
                 setSelectedBanner(banner);
                 setIsDetailDialogOpen(true);
@@ -687,7 +889,17 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   );
 }
 
-function BannerCard({ banner, onClick }: { banner: BannerWithParty; onClick?: () => void }) {
+function BannerCard({
+  banner,
+  onClick,
+  isSelected,
+  onToggleSelect
+}: {
+  banner: BannerWithParty;
+  onClick?: () => void;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
+}) {
   const isExpired = new Date(banner.end_date) < new Date();
   const { updateBanner } = useBannerActions();
   const { hasPermission } = useAuth();
@@ -695,32 +907,46 @@ function BannerCard({ banner, onClick }: { banner: BannerWithParty; onClick?: ()
 
   return (
     <div
-      className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
-      onClick={onClick}
+      className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
     >
-      <img
-        src={banner.image_url || PLACEHOLDER_IMAGES.banner}
-        alt={banner.text}
-        className="w-20 h-16 rounded-lg object-cover bg-gray-100"
-      />
-      <div className="flex-1">
-        <h4 className="font-medium text-gray-900 mb-1">{banner.text}</h4>
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-          <MapPin className="w-4 h-4" />
-          {banner.address}
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge
-            style={{ backgroundColor: banner.party.color, color: 'white' }}
-            className="text-xs"
-          >
-            {banner.party.name}
-          </Badge>
-          {isExpired && (
-            <Badge variant="destructive" className="text-xs">
-              만료됨
+      {/* Checkbox */}
+      {onToggleSelect && (
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={onToggleSelect}
+          onClick={(e) => e.stopPropagation()}
+        />
+      )}
+
+      {/* Banner Image and Content - clickable area */}
+      <div
+        className="flex items-center gap-4 flex-1 cursor-pointer"
+        onClick={onClick}
+      >
+        <img
+          src={banner.image_url || PLACEHOLDER_IMAGES.banner}
+          alt={banner.text}
+          className="w-20 h-16 rounded-lg object-cover bg-gray-100"
+        />
+        <div className="flex-1">
+          <h4 className="font-medium text-gray-900 mb-1">{banner.text}</h4>
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+            <MapPin className="w-4 h-4" />
+            {banner.address}
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge
+              style={{ backgroundColor: banner.party.color, color: 'white' }}
+              className="text-xs"
+            >
+              {banner.party.name}
             </Badge>
-          )}
+            {isExpired && (
+              <Badge variant="destructive" className="text-xs">
+                만료됨
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
       <div className="text-right">

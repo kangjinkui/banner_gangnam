@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar as CalendarIcon, MapPin, Upload, ArrowLeft } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Upload, ArrowLeft, Locate } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -50,6 +50,7 @@ export default function BannerRegisterPage() {
     coordinates?: { lat: number; lng: number };
     error?: string;
   } | null>(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   const form = useForm<BannerFormData>({
     resolver: zodResolver(bannerFormSchema),
@@ -144,6 +145,89 @@ export default function BannerRegisterPage() {
     }, 800);
 
     setAddressDebounceTimer(timer);
+  };
+
+  // Get current location and reverse geocode to address
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast({
+        title: '위치 정보를 사용할 수 없습니다',
+        description: '브라우저에서 위치 정보를 지원하지 않습니다.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsGettingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+          // Use Kakao Maps API to reverse geocode
+          const response = await fetch(
+            `/api/banners/reverse-geocode?lat=${latitude}&lng=${longitude}`
+          );
+          const result = await response.json();
+
+          if (result.success && result.data) {
+            // Set address in form
+            form.setValue('address', result.data.address);
+
+            // Also validate the address
+            setAddressValidation({
+              isValid: true,
+              district: result.data.administrative_district,
+              coordinates: { lat: latitude, lng: longitude },
+            });
+
+            toast({
+              title: '위치 정보를 가져왔습니다',
+              description: result.data.address,
+            });
+          } else {
+            throw new Error(result.error || '주소를 가져올 수 없습니다');
+          }
+        } catch (error) {
+          console.error('Reverse geocoding error:', error);
+          toast({
+            title: '주소 변환 실패',
+            description: '좌표를 주소로 변환하는 중 오류가 발생했습니다.',
+            variant: 'destructive',
+          });
+        } finally {
+          setIsGettingLocation(false);
+        }
+      },
+      (error) => {
+        setIsGettingLocation(false);
+        let errorMessage = '위치 정보를 가져올 수 없습니다.';
+
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = '위치 정보 접근 권한이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = '위치 정보를 사용할 수 없습니다.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = '위치 정보 요청 시간이 초과되었습니다.';
+            break;
+        }
+
+        toast({
+          title: '위치 정보 가져오기 실패',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
   };
 
   const onSubmit = async (data: BannerFormData) => {
@@ -297,14 +381,31 @@ export default function BannerRegisterPage() {
                           <FormLabel>설치 주소</FormLabel>
                           <FormControl>
                             <div className="space-y-2">
-                              <Input
-                                placeholder="예: 서울시 강남구 역삼동 123-45"
-                                {...field}
-                                onChange={(e) => {
-                                  field.onChange(e);
-                                  handleAddressChange(e.target.value);
-                                }}
-                              />
+                              <div className="flex gap-2">
+                                <Input
+                                  placeholder="예: 서울시 강남구 역삼동 123-45"
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e);
+                                    handleAddressChange(e.target.value);
+                                  }}
+                                  className="flex-1"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={handleGetCurrentLocation}
+                                  disabled={isGettingLocation}
+                                  title="현재 위치 가져오기"
+                                >
+                                  {isGettingLocation ? (
+                                    <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                                  ) : (
+                                    <Locate className="w-4 h-4" />
+                                  )}
+                                </Button>
+                              </div>
                               {isValidatingAddress && (
                                 <div className="flex items-center gap-2 text-sm text-gray-500">
                                   <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
@@ -466,24 +567,30 @@ export default function BannerRegisterPage() {
                           </Button>
                         </div>
                       ) : (
-                        <label
-                          htmlFor="image-upload"
-                          className="aspect-video bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors"
-                        >
-                          <Upload className="w-12 h-12 text-gray-400 mb-4" />
-                          <p className="text-gray-600 font-medium mb-2">사진을 업로드하세요</p>
-                          <p className="text-sm text-gray-500 mb-4">JPG, PNG 파일만 가능합니다</p>
-                          <Button type="button" variant="outline" className="pointer-events-none">
-                            파일 선택
-                          </Button>
-                          <input
-                            id="image-upload"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                          />
-                        </label>
+                        <div className="space-y-4">
+                          <label
+                            htmlFor="image-upload"
+                            className="aspect-video bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors"
+                          >
+                            <Upload className="w-12 h-12 text-gray-400 mb-4" />
+                            <p className="text-gray-600 font-medium mb-2">사진을 업로드하세요</p>
+                            <p className="text-sm text-gray-500 mb-4">JPG, PNG 파일만 가능합니다</p>
+                            <Button type="button" variant="outline" className="pointer-events-none">
+                              파일 선택
+                            </Button>
+                            <input
+                              id="image-upload"
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                            />
+                          </label>
+                          <p className="text-xs text-center text-gray-500">
+                            모바일에서는 카메라로 직접 촬영할 수 있습니다
+                          </p>
+                        </div>
                       )}
                     </div>
                   </CardContent>

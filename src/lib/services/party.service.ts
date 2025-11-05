@@ -1,4 +1,4 @@
-import { PartiesService } from '@/lib/database';
+import { PartiesService, BannersService } from '@/lib/database';
 import { ImageService } from '@/lib/storage';
 import { partyCreateSchema, partyUpdateSchema, type PartyCreateInput, type PartyUpdateInput } from '@/lib/validations';
 import { Party, PartyWithBannerCount } from '@/types/party';
@@ -90,10 +90,10 @@ export class PartyService {
     }
 
     // Check if party has active banners
-    const { data: banners } = await PartiesService.getAll({
+    const { data: banners } = await BannersService.getAll({
       filters: { party_id: [id], is_active: true },
       limit: 1,
-    } as any);
+    });
 
     if (banners && banners.length > 0) {
       throw new Error('활성화된 현수막이 있는 정당은 삭제할 수 없습니다. 먼저 현수막을 비활성화하거나 삭제하세요.');
