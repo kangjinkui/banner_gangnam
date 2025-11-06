@@ -1,14 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir:*)",
-      "Bash(npm install:*)",
-      "Bash(curl:*)",
-      "Bash(npm run dev:*)",
-      "Bash(where:*)",
+      "Bash(git clean:*)",
       "Bash(npx tsx:*)",
-      "Bash(node -e \"require(''dotenv'').config(); const { execSync } = require(''child_process''); execSync(''npx tsx scripts/import-banners.ts'', { stdio: ''inherit'', env: process.env });\")",
-      "Bash(npx dotenv-cli:*)"
+      "Bash(cat:*)",
+      "Bash(xargs export:*)",
+      "Bash(source .env.local)",
+      "Bash(npm run build:*)",
+      "Bash(git config:*)"
     ],
     "deny": [],
     "ask": []

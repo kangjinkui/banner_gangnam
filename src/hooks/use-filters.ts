@@ -1,13 +1,13 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import { useBannerActions, useBannerFilters } from '@/store/banner.store';
+import { useBannerActions, useBannerFilters as useBannerFiltersStore } from '@/store/banner.store';
 import { BannerFilterOptions } from '@/types/banner';
 import { useParties } from './use-parties';
 import { useDistricts } from './use-map';
 
 export function useBannerFilters() {
-  const filters = useBannerFilters();
+  const filters = useBannerFiltersStore();
   const { setFilters, resetFilters } = useBannerActions();
 
   const updateFilter = useCallback((key: keyof BannerFilterOptions, value: any) => {
@@ -24,7 +24,7 @@ export function useBannerFilters() {
     if (key === 'party_id') clearedFilters.party_id = [];
     else if (key === 'administrative_district') clearedFilters.administrative_district = [];
     else if (key === 'date_range') clearedFilters.date_range = undefined;
-    else clearedFilters[key] = undefined;
+    else (clearedFilters as any)[key] = undefined;
 
     setFilters(clearedFilters);
   }, [setFilters]);

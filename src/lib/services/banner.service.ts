@@ -100,7 +100,13 @@ export class BannerService {
 
       // Step 4: Create banner in database
       const banner = await BannersService.create({
-        ...validatedInput,
+        party_id: validatedInput.party_id,
+        address: validatedInput.address,
+        text: validatedInput.text,
+        start_date: validatedInput.start_date,
+        end_date: validatedInput.end_date,
+        memo: validatedInput.memo,
+        is_active: validatedInput.is_active,
         lat: geocodeResult.lat,
         lng: geocodeResult.lng,
         administrative_district: administrativeDistrict,
@@ -237,7 +243,7 @@ export class BannerService {
       throw new Error('업데이트할 현수막을 선택하세요.');
     }
 
-    const validatedUpdates = bannerUpdateSchema.partial().parse(updates);
+    const validatedUpdates = bannerUpdateSchema.parse(updates);
     await BannersService.bulkUpdate(bannerIds, validatedUpdates);
   }
 
@@ -339,7 +345,13 @@ export class BannerService {
     };
 
     return BannersService.create({
-      ...duplicateData,
+      party_id: duplicateData.party_id,
+      address: duplicateData.address,
+      text: duplicateData.text,
+      start_date: duplicateData.start_date,
+      end_date: duplicateData.end_date,
+      memo: duplicateData.memo,
+      is_active: duplicateData.is_active,
       lat: existingBanner.lat,
       lng: existingBanner.lng,
       administrative_district: existingBanner.administrative_district || undefined,
@@ -383,7 +395,7 @@ export class BannerService {
    */
   static async reverseGeocode(lat: number, lng: number): Promise<{
     address: string;
-    administrative_district: string;
+    administrative_district?: string;
   }> {
     return GeocodingService.coordinatesToAddress(lat, lng);
   }

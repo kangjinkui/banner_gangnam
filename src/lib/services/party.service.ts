@@ -34,16 +34,21 @@ export class PartyService {
    */
   static async create(input: PartyCreateInput): Promise<Party> {
     // Validate input
-    const validatedInput = partyCreateSchema.parse(input);
+    const parsed = partyCreateSchema.parse(input);
 
     // Check if party name already exists
-    const nameExists = await PartiesService.nameExists(validatedInput.name);
+    const nameExists = await PartiesService.nameExists(parsed.name);
     if (nameExists) {
       throw new Error('이미 존재하는 정당명입니다.');
     }
 
-    // Create party
-    return PartiesService.create(validatedInput);
+    // Create party with validated data
+    return PartiesService.create({
+      name: parsed.name,
+      color: parsed.color,
+      marker_icon_url: parsed.marker_icon_url,
+      is_active: parsed.is_active ?? true,
+    });
   }
 
   /**

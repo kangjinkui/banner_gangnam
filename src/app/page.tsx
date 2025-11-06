@@ -477,6 +477,9 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   // Store hooks
   const { setBanners } = useBannerActions();
 
+  // Auth hooks
+  const { isAuthenticated, hasPermission } = useAuth();
+
   // Get unique parties from banners
   const uniqueParties = Array.from(new Set(banners.map(b => b.party.name))).sort();
 
@@ -791,8 +794,8 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
         </div>
       </div>
 
-      {/* Bulk Actions */}
-      {selectedBannerIds.size > 0 && (
+      {/* Bulk Actions - Only show when authenticated and has permission */}
+      {isAuthenticated && hasPermission('banners', 'update') && selectedBannerIds.size > 0 && (
         <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -824,14 +827,16 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
               >
                 일괄 비활성화
               </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleBulkDelete}
-                disabled={isBulkProcessing}
-              >
-                일괄 삭제
-              </Button>
+              {hasPermission('banners', 'delete') && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                  disabled={isBulkProcessing}
+                >
+                  일괄 삭제
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -841,7 +846,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">현수막 목록 ({filteredBanners.length}개)</h3>
-          {filteredBanners.length > 0 && (
+          {isAuthenticated && hasPermission('banners', 'update') && filteredBanners.length > 0 && (
             <Button
               variant="outline"
               size="sm"
@@ -857,7 +862,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
               key={banner.id}
               banner={banner}
               isSelected={selectedBannerIds.has(banner.id)}
-              onToggleSelect={() => handleToggleSelect(banner.id)}
+              onToggleSelect={isAuthenticated && hasPermission('banners', 'update') ? () => handleToggleSelect(banner.id) : undefined}
               onClick={() => {
                 setSelectedBanner(banner);
                 setIsDetailDialogOpen(true);

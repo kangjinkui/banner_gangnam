@@ -7,6 +7,7 @@ export interface BaseEntity {
 }
 
 export interface ApiResponse<T> {
+  success?: boolean;
   data?: T;
   error?: string;
   message?: string;
@@ -26,8 +27,8 @@ export interface Coordinates {
 }
 
 export interface DateRange {
-  start_date: string;
-  end_date: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 export interface FilterOptions {

@@ -4,12 +4,6 @@ import { useEffect, useRef } from 'react';
 import { BannerWithParty } from '@/types/banner';
 import { PLACEHOLDER_IMAGES } from '@/lib/utils/placeholder';
 
-declare global {
-  interface Window {
-    kakao: any;
-  }
-}
-
 interface KakaoMapProps {
   banners: BannerWithParty[];
   onMarkerClick?: (banner: BannerWithParty) => void;

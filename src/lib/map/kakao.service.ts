@@ -322,6 +322,8 @@ declare global {
         LatLng: any;
         Marker: any;
         InfoWindow: any;
+        CustomOverlay: any;
+        LatLngBounds: any;
         services: {
           Geocoder: any;
           Places: any;

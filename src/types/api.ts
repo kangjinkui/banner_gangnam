@@ -35,9 +35,9 @@ export interface ApiEndpoints {
   parties: {
     list: '/api/parties';
     create: '/api/parties';
-    detail: (id: string) => `/api/parties/${id}`;
-    update: (id: string) => `/api/parties/${id}`;
-    delete: (id: string) => `/api/parties/${id}`;
+    detail: (id: string) => string;
+    update: (id: string) => string;
+    delete: (id: string) => string;
     stats: '/api/parties/stats';
   };
 
@@ -45,9 +45,9 @@ export interface ApiEndpoints {
   banners: {
     list: '/api/banners';
     create: '/api/banners';
-    detail: (id: string) => `/api/banners/${id}`;
-    update: (id: string) => `/api/banners/${id}`;
-    delete: (id: string) => `/api/banners/${id}`;
+    detail: (id: string) => string;
+    update: (id: string) => string;
+    delete: (id: string) => string;
     stats: '/api/banners/stats';
     upload: '/api/banners/upload';
   };
