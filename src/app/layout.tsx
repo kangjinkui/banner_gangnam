@@ -28,7 +28,7 @@ export default function RootLayout({
     <html suppressHydrationWarning>
       <head>
         <Script
-          src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&autoload=false`}
+          src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY}&autoload=false`}
           strategy="beforeInteractive"
         />
       </head>
