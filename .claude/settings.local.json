@@ -7,7 +7,10 @@
       "Bash(xargs export:*)",
       "Bash(source .env.local)",
       "Bash(npm run build:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nFix 404 error: correct Kakao Map API environment variable name\n\n- Fix environment variable name mismatch in layout.tsx\n  - Changed from NEXT_PUBLIC_KAKAO_MAP_API_KEY to NEXT_PUBLIC_KAKAO_REST_API_KEY\n  - This was causing Kakao Map script to fail loading with undefined appkey\n- Add .env.example for deployment reference\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
