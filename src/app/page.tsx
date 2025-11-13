@@ -356,39 +356,15 @@ function MapView() {
   // Only show active banners on the map
   const banners = allBanners.filter(b => b.is_active);
   const [selectedBanner, setSelectedBanner] = useState<BannerWithParty | null>(null);
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
-
-  useEffect(() => {
-    // Kakao Map API 로드 확인
-    const checkKakaoMap = setInterval(() => {
-      if (window.kakao && window.kakao.maps) {
-        window.kakao.maps.load(() => {
-          setIsMapLoaded(true);
-        });
-        clearInterval(checkKakaoMap);
-      }
-    }, 100);
-
-    return () => clearInterval(checkKakaoMap);
-  }, []);
 
   return (
     <div className="space-y-4">
       {/* Kakao Map */}
-      <div className="h-96 bg-gray-100 rounded-lg overflow-hidden">
-        {isMapLoaded ? (
-          <KakaoMap
-            banners={banners}
-            onMarkerClick={(banner) => setSelectedBanner(banner)}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4 animate-pulse" />
-              <p className="text-gray-600 font-medium">카카오 지도 로딩 중...</p>
-            </div>
-          </div>
-        )}
+      <div className="h-[500px] bg-gray-100 rounded-lg overflow-hidden">
+        <KakaoMap
+          banners={banners}
+          onMarkerClick={(banner) => setSelectedBanner(banner)}
+        />
       </div>
 
       {/* Selected banner details */}

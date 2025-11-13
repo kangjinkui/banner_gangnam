@@ -24,17 +24,20 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const kakaoMapKey = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY;
+
   return (
     <html suppressHydrationWarning>
-      <head>
-        <Script
-          src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY}&autoload=false`}
-          strategy="beforeInteractive"
-        />
-      </head>
+      <head></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {kakaoMapKey && (
+          <Script
+            strategy="beforeInteractive"
+            src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoMapKey}&libraries=services,clusterer&autoload=false`}
+          />
+        )}
         <Providers>{children}</Providers>
       </body>
     </html>

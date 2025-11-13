@@ -113,16 +113,24 @@ export class GeocodingService {
    */
   private static async verifyGangnamDistrict(lat: number, lng: number): Promise<boolean> {
     try {
+      const apiKey = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
+
+      if (!apiKey) {
+        console.error('Kakao REST API key is not configured');
+        return KakaoMapService.isWithinGangnamBounds({ lat, lng });
+      }
+
       const response = await fetch(
         `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${lng}&y=${lat}`,
         {
           headers: {
-            Authorization: `KakaoAK ${process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY}`,
+            Authorization: `KakaoAK ${apiKey}`,
           },
         }
       );
 
       if (!response.ok) {
+        console.error(`Kakao API error: ${response.status}`);
         // If API fails, fallback to bounds check
         return KakaoMapService.isWithinGangnamBounds({ lat, lng });
       }

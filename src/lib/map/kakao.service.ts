@@ -2,8 +2,19 @@ import { Coordinates } from '@/types';
 
 // Kakao Map API service
 export class KakaoMapService {
-  private static apiKey = process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY;
-  private static restApiKey = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
+  /**
+   * Get API key (dynamically read from environment)
+   */
+  private static getApiKey(): string | undefined {
+    return process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY;
+  }
+
+  /**
+   * Get REST API key (dynamically read from environment)
+   */
+  private static getRestApiKey(): string | undefined {
+    return process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
+  }
 
   /**
    * Initialize Kakao Map script
@@ -15,13 +26,14 @@ export class KakaoMapService {
         return;
       }
 
-      if (!this.apiKey) {
+      const apiKey = this.getApiKey();
+      if (!apiKey) {
         reject(new Error('Kakao Map API key is not configured'));
         return;
       }
 
       const script = document.createElement('script');
-      script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${this.apiKey}&libraries=services,clusterer&autoload=false`;
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services,clusterer&autoload=false`;
       script.async = true;
 
       script.onload = () => {
@@ -42,7 +54,12 @@ export class KakaoMapService {
    * Convert address to coordinates using Kakao API
    */
   static async addressToCoordinates(address: string): Promise<Coordinates & { administrative_district?: string }> {
-    if (!this.restApiKey) {
+    const restApiKey = this.getRestApiKey();
+
+    console.log('[KakaoMapService] REST API Key present:', !!restApiKey);
+    console.log('[KakaoMapService] REST API Key value:', restApiKey ? `${restApiKey.substring(0, 8)}...` : 'undefined');
+
+    if (!restApiKey) {
       throw new Error('Kakao REST API key is not configured');
     }
 
@@ -51,12 +68,17 @@ export class KakaoMapService {
         `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(address)}`,
         {
           headers: {
-            Authorization: `KakaoAK ${this.restApiKey}`,
+            Authorization: `KakaoAK ${restApiKey}`,
+            KA: 'sdk/1.0 os/javascript lang/en-US origin/http://localhost:3000',
           },
         }
       );
 
+      console.log('[KakaoMapService] Kakao API response status:', response.status);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[KakaoMapService] Kakao API error response:', errorText);
         throw new Error(`Kakao API error: ${response.status}`);
       }
 
@@ -95,7 +117,8 @@ export class KakaoMapService {
    * Uses Kakao coord2regioncode API to get accurate administrative district
    */
   static async getAdministrativeDistrictByCoordinates(lat: number, lng: number): Promise<string | undefined> {
-    if (!this.restApiKey) {
+    const restApiKey = this.getRestApiKey();
+    if (!restApiKey) {
       throw new Error('Kakao REST API key is not configured');
     }
 
@@ -104,7 +127,8 @@ export class KakaoMapService {
         `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${lng}&y=${lat}`,
         {
           headers: {
-            Authorization: `KakaoAK ${this.restApiKey}`,
+            Authorization: `KakaoAK ${restApiKey}`,
+            KA: 'sdk/1.0 os/javascript lang/en-US origin/http://localhost:3000',
           },
         }
       );
@@ -141,7 +165,8 @@ export class KakaoMapService {
     address: string;
     administrative_district?: string;
   }> {
-    if (!this.restApiKey) {
+    const restApiKey = this.getRestApiKey();
+    if (!restApiKey) {
       throw new Error('Kakao REST API key is not configured');
     }
 
@@ -150,7 +175,8 @@ export class KakaoMapService {
         `https://dapi.kakao.com/v2/local/geo/coord2address.json?x=${lng}&y=${lat}`,
         {
           headers: {
-            Authorization: `KakaoAK ${this.restApiKey}`,
+            Authorization: `KakaoAK ${restApiKey}`,
+            KA: 'sdk/1.0 os/javascript lang/en-US origin/http://localhost:3000',
           },
         }
       );
@@ -198,7 +224,8 @@ export class KakaoMapService {
     coordinates: Coordinates;
     category: string;
   }>> {
-    if (!this.restApiKey) {
+    const restApiKey = this.getRestApiKey();
+    if (!restApiKey) {
       throw new Error('Kakao REST API key is not configured');
     }
 
@@ -214,7 +241,8 @@ export class KakaoMapService {
 
       const response = await fetch(url, {
         headers: {
-          Authorization: `KakaoAK ${this.restApiKey}`,
+          Authorization: `KakaoAK ${restApiKey}`,
+          KA: 'sdk/1.0 os/javascript lang/en-US origin/http://localhost:3000',
         },
       });
 

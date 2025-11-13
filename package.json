@@ -6,7 +6,13 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "docker:build": "docker build -t banner-gangnam:latest .",
+    "docker:up": "docker-compose --env-file .env.docker up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f app",
+    "docker:restart": "docker-compose restart app",
+    "docker:rebuild": "docker-compose down && docker build -t banner-gangnam:latest . && docker-compose --env-file .env.docker up -d"
   },
   "dependencies": {
     "@hookform/resolvers": "^4",

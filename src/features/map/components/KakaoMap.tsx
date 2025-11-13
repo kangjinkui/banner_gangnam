@@ -22,20 +22,50 @@ export function KakaoMap({
   const markersRef = useRef<any[]>([]);
 
   useEffect(() => {
-    // Kakao Map API가 로드되지 않았으면 초기화하지 않음
-    if (!window.kakao || !window.kakao.maps) {
-      console.error('Kakao Maps API is not loaded');
-      return;
+    function initializeMap() {
+      // 지도 초기화 (LatLng 클래스가 있는지 확인)
+      if (mapRef.current && !kakaoMapRef.current && window.kakao?.maps?.LatLng) {
+        try {
+          const options = {
+            center: new window.kakao.maps.LatLng(center.lat, center.lng),
+            level: level
+          };
+
+          kakaoMapRef.current = new window.kakao.maps.Map(mapRef.current, options);
+          console.log('Kakao Map initialized successfully');
+        } catch (error) {
+          console.error('Failed to initialize Kakao Map:', error);
+        }
+      }
     }
 
-    // 지도 초기화
-    if (mapRef.current && !kakaoMapRef.current) {
-      const options = {
-        center: new window.kakao.maps.LatLng(center.lat, center.lng),
-        level: level
-      };
+    // Kakao Map API가 로드되지 않았으면 대기하고 수동 로드
+    if (!window.kakao?.maps) {
+      console.log('Waiting for Kakao Maps SDK...');
+      const checkKakao = setInterval(() => {
+        if (window.kakao?.maps) {
+          clearInterval(checkKakao);
+          console.log('Kakao Maps SDK detected, loading...');
 
-      kakaoMapRef.current = new window.kakao.maps.Map(mapRef.current, options);
+          // autoload=false로 인해 수동 로드 필요
+          window.kakao.maps.load(() => {
+            console.log('Kakao Maps SDK loaded successfully!');
+            initializeMap();
+          });
+        }
+      }, 100);
+      return () => clearInterval(checkKakao);
+    }
+
+    // 이미 로드되어 있으면 바로 초기화
+    if (window.kakao.maps.LatLng) {
+      initializeMap();
+    } else {
+      // 로드되어 있지만 초기화되지 않은 경우
+      window.kakao.maps.load(() => {
+        console.log('Kakao Maps SDK loaded successfully!');
+        initializeMap();
+      });
     }
   }, [center.lat, center.lng, level]);
 
@@ -221,7 +251,7 @@ export function KakaoMap({
     <div
       ref={mapRef}
       className="w-full h-full rounded-lg"
-      style={{ minHeight: '400px' }}
+      style={{ minHeight: '500px', height: '100%' }}
     />
   );
 }
