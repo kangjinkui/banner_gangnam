@@ -23,7 +23,8 @@
       "Bash(echo $NEXT_PUBLIC_KAKAO_REST_API_KEY)",
       "Bash(npm run dev:*)",
       "Bash(echo $NEXT_PUBLIC_KAKAO_MAP_API_KEY)",
-      "Bash(echo $NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY)"
+      "Bash(echo $NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

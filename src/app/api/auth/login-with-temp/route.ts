@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/database/supabase';
+import { TempPassword } from '@/types/auth';
 import crypto from 'crypto';
 
 /**
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .eq('temp_password', hashedTempPassword)
       .eq('is_used', false)
-      .maybeSingle();
+      .single() as { data: TempPassword | null; error: any };
 
     if (tempPwError || !tempPwData) {
       return NextResponse.json(

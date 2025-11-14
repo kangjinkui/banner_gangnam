@@ -82,3 +82,12 @@ export interface UserRoleData {
   created_at: string;
   updated_at: string;
 }
+
+export interface TempPassword {
+  id: string;
+  user_id: string;
+  temp_password: string;
+  expires_at: string;
+  is_used: boolean;
+  created_at: string;
+}

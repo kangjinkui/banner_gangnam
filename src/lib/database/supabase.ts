@@ -12,44 +12,6 @@ function validateEnvVars() {
   }
 }
 
-// Lazy initialization to avoid errors during build
-let _supabase: ReturnType<typeof createClient> | null = null;
-let _supabaseAdmin: ReturnType<typeof createClient> | null = null;
-
-// Client-side Supabase client
-export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
-  get(_target, prop) {
-    if (!_supabase) {
-      validateEnvVars();
-      _supabase = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true,
-          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-        },
-      });
-    }
-    return Reflect.get(_supabase, prop);
-  }
-});
-
-// Server-side Supabase client with service role key (for admin operations)
-export const supabaseAdmin = new Proxy({} as ReturnType<typeof createClient> | null, {
-  get(_target, prop) {
-    if (!_supabaseAdmin && supabaseServiceKey) {
-      validateEnvVars();
-      _supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      });
-    }
-    return _supabaseAdmin ? Reflect.get(_supabaseAdmin, prop) : null;
-  }
-});
-
 // Database types (will be auto-generated in production)
 export type Database = {
   public: {
@@ -171,6 +133,32 @@ export type Database = {
           created_at?: string;
         };
       };
+      temp_passwords: {
+        Row: {
+          id: string;
+          user_id: string;
+          temp_password: string;
+          expires_at: string;
+          is_used: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          temp_password: string;
+          expires_at: string;
+          is_used?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          temp_password?: string;
+          expires_at?: string;
+          is_used?: boolean;
+          created_at?: string;
+        };
+      };
     };
   };
 };
@@ -178,3 +166,41 @@ export type Database = {
 export type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
 export type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
 export type TablesRow<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
+
+// Lazy initialization to avoid errors during build
+let _supabase: ReturnType<typeof createClient<Database>> | null = null;
+let _supabaseAdmin: ReturnType<typeof createClient<Database>> | null = null;
+
+// Client-side Supabase client
+export const supabase = new Proxy({} as ReturnType<typeof createClient<Database>>, {
+  get(_target, prop) {
+    if (!_supabase) {
+      validateEnvVars();
+      _supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        },
+      });
+    }
+    return Reflect.get(_supabase, prop);
+  }
+});
+
+// Server-side Supabase client with service role key (for admin operations)
+export const supabaseAdmin = new Proxy({} as ReturnType<typeof createClient<Database>> | null, {
+  get(_target, prop) {
+    if (!_supabaseAdmin && supabaseServiceKey) {
+      validateEnvVars();
+      _supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      });
+    }
+    return _supabaseAdmin ? Reflect.get(_supabaseAdmin, prop) : null;
+  }
+});
