@@ -441,6 +441,7 @@ function MapView() {
 function ListView({ banners }: { banners: BannerWithParty[] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedParty, setSelectedParty] = useState('');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [filteredBanners, setFilteredBanners] = useState<BannerWithParty[]>(banners);
   const [isSearching, setIsSearching] = useState(false);
@@ -458,6 +459,9 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
 
   // Get unique parties from banners
   const uniqueParties = Array.from(new Set(banners.map(b => b.party.name))).sort();
+
+  // Get unique districts from banners
+  const uniqueDistricts = Array.from(new Set(banners.map(b => b.administrative_district).filter(Boolean))).sort();
 
   // Update filtered banners when original banners change
   // Default: show only active banners
@@ -483,6 +487,11 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
     // Filter by party
     if (selectedParty) {
       result = result.filter(banner => banner.party.name === selectedParty);
+    }
+
+    // Filter by district
+    if (selectedDistrict) {
+      result = result.filter(banner => banner.administrative_district === selectedDistrict);
     }
 
     // Always filter out inactive banners by default unless specifically requested
@@ -514,6 +523,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   const handleReset = () => {
     setSearchQuery('');
     setSelectedParty('');
+    setSelectedDistrict('');
     setSelectedStatus('');
     setFilteredBanners(banners);
   };
@@ -668,6 +678,9 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       if (selectedParty) {
         filters.party = selectedParty;
       }
+      if (selectedDistrict) {
+        filters.district = selectedDistrict;
+      }
       if (selectedStatus) {
         filters.status = selectedStatus;
       }
@@ -719,7 +732,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
             <Input
@@ -738,6 +751,18 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
               {uniqueParties.map(partyName => (
                 <SelectItem key={partyName} value={partyName}>
                   {partyName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
+            <SelectTrigger>
+              <SelectValue placeholder="행정동 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              {uniqueDistricts.map(district => (
+                <SelectItem key={district} value={district}>
+                  {district}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -763,7 +788,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           <Button
             onClick={handleReset}
             variant="outline"
-            disabled={!searchQuery && !selectedParty && !selectedStatus}
+            disabled={!searchQuery && !selectedParty && !selectedDistrict && !selectedStatus}
           >
             초기화
           </Button>
@@ -901,37 +926,37 @@ function BannerCard({
 
       {/* Banner Image and Content - clickable area */}
       <div
-        className="flex items-center gap-4 flex-1 cursor-pointer"
+        className="flex items-center gap-4 flex-1 cursor-pointer min-w-0"
         onClick={onClick}
       >
         <img
           src={banner.image_url || PLACEHOLDER_IMAGES.banner}
           alt={banner.text}
-          className="w-20 h-16 rounded-lg object-cover bg-gray-100"
+          className="w-20 h-16 rounded-lg object-cover bg-gray-100 flex-shrink-0"
         />
-        <div className="flex-1">
-          <h4 className="font-medium text-gray-900 mb-1">{banner.text}</h4>
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-            <MapPin className="w-4 h-4" />
-            {banner.address}
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-gray-900 mb-1 truncate">{banner.text}</h4>
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2 min-w-0">
+            <MapPin className="w-4 h-4 flex-shrink-0" />
+            <span className="truncate">{banner.address}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge
               style={{ backgroundColor: banner.party.color, color: 'white' }}
-              className="text-xs"
+              className="text-xs whitespace-nowrap"
             >
               {banner.party.name}
             </Badge>
             {isExpired && (
-              <Badge variant="destructive" className="text-xs">
+              <Badge variant="destructive" className="text-xs whitespace-nowrap">
                 만료됨
               </Badge>
             )}
           </div>
         </div>
       </div>
-      <div className="text-right">
-        <p className="text-sm text-gray-600 mb-1">
+      <div className="text-right flex-shrink-0">
+        <p className="text-sm text-gray-600 mb-1 whitespace-nowrap">
           {banner.start_date} ~ {banner.end_date}
         </p>
         {hasPermission('banners', 'update') && (
