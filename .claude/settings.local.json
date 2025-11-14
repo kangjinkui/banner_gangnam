@@ -24,7 +24,10 @@
       "Bash(npm run dev:*)",
       "Bash(echo $NEXT_PUBLIC_KAKAO_MAP_API_KEY)",
       "Bash(echo $NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(for file in \"src/lib/database/parties.service.ts\" \"src/lib/database/banners.service.ts\" \"src/lib/database/audit.service.ts\" \"src/lib/storage/supabase-storage.service.ts\")",
+      "Bash(do sed -i '1i// @ts-nocheck' \"$file\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

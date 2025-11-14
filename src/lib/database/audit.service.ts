@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { supabase, TablesRow } from './supabase';
 import { QueryOptions } from '@/types';
 

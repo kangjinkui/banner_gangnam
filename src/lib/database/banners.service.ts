@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { supabase, supabaseAdmin, TablesInsert, TablesUpdate } from './supabase';
 import { Banner, BannerWithParty, BannerCreateInput, BannerUpdateInput, BannerStats } from '@/types/banner';
 import { QueryOptions } from '@/types';

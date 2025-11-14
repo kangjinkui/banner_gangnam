@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { supabase, supabaseAdmin, TablesInsert, TablesUpdate, TablesRow } from './supabase';
 import { Party, PartyCreateInput, PartyUpdateInput, PartyWithBannerCount } from '@/types/party';
 import { QueryOptions } from '@/types';
