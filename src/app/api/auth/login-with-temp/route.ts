@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .eq('temp_password', hashedTempPassword)
       .eq('is_used', false)
-      .single();
+      .maybeSingle();
 
     if (tempPwError || !tempPwData) {
       return NextResponse.json(
