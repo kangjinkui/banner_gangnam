@@ -169,53 +169,43 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 sm:gap-3">
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              <MapPin className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div className="min-w-0">
-              <h1 className="text-base sm:text-xl font-semibold text-gray-900 truncate">현수막 관리 시스템</h1>
-              <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">정당별 현수막 설치 현황 관리</p>
-            </div>
+            <h1 className="text-sm sm:text-xl font-semibold text-gray-900 whitespace-nowrap">현수막관리시스템</h1>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {isAuthenticated && user ? (
               <>
-                {/* User Info - clickable to go to profile */}
+                {/* User Info - icon only on mobile */}
                 <Link href="/profile" className="flex-shrink-0">
-                  <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                    <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
-                    <div className="text-xs sm:text-sm">
-                      <p className="font-medium text-gray-900 max-w-[120px] sm:max-w-none truncate">{user.email}</p>
-                      <p className="text-[10px] sm:text-xs text-gray-500">
-                        {user.role === 'admin' ? '관리자' : '일반 사용자'}
-                      </p>
-                    </div>
-                  </div>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3">
+                    <UserIcon className="w-4 h-4 sm:w-4 sm:h-4 text-gray-600" />
+                    <span className="hidden sm:inline ml-2 text-sm">{user.email}</span>
+                  </Button>
                 </Link>
 
-                {/* Admin-only buttons */}
+                {/* Admin buttons - icon only */}
                 {hasPermission('parties', 'update') && (
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-1 sm:gap-2 text-xs sm:text-sm"
+                    className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3"
                     onClick={() => setIsPartyManagementOpen(true)}
                   >
-                    <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">정당 관리</span>
-                    <span className="sm:hidden">정당</span>
+                    <Users className="w-4 h-4 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline ml-1">정당</span>
                   </Button>
                 )}
 
                 {hasPermission('banners', 'create') && (
-                  <Button asChild size="sm" className="gap-1 sm:gap-2 bg-indigo-600 hover:bg-indigo-700 text-xs sm:text-sm">
+                  <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3">
                     <Link href="/register">
-                      <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">현수막 등록</span>
-                      <span className="sm:hidden">등록</span>
+                      <MapPin className="w-4 h-4 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline ml-1">등록</span>
                     </Link>
                   </Button>
                 )}
@@ -223,76 +213,75 @@ export default function Dashboard() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="gap-1 sm:gap-2 text-xs sm:text-sm"
+                  className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3"
                   onClick={() => signOut()}
                 >
-                  <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">로그아웃</span>
+                  <LogOut className="w-4 h-4 sm:w-4 sm:h-4" />
                 </Button>
               </>
             ) : (
               <Button
                 size="sm"
-                className="gap-1 sm:gap-2 bg-indigo-600 hover:bg-indigo-700 text-xs sm:text-sm"
+                className="bg-indigo-600 hover:bg-indigo-700 h-8 sm:h-9 px-3 sm:px-4 text-sm"
                 onClick={() => setIsLoginDialogOpen(true)}
               >
-                <UserIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                로그인
+                <UserIcon className="w-4 h-4 sm:w-4 sm:h-4" />
+                <span className="ml-1.5">로그인</span>
               </Button>
             )}
           </div>
         </div>
       </header>
 
-      <div className="px-6 py-6">
+      <div className="px-4 sm:px-6 py-4 sm:py-6 max-w-[1400px] mx-auto">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 mb-4 sm:mb-8">
           <StatsCard
             title="총 현수막"
             value={summary.total}
             change={12}
-            icon={<MapPin className="w-6 h-6 text-indigo-600" />}
+            icon={<MapPin className="w-4 h-4 sm:w-6 sm:h-6 text-indigo-600" />}
             color="bg-indigo-100"
           />
           <StatsCard
             title="활성 정당"
             value={activePartyCount}
             change={0}
-            icon={<Users className="w-6 h-6 text-red-600" />}
+            icon={<Users className="w-4 h-4 sm:w-6 sm:h-6 text-red-600" />}
             color="bg-red-100"
           />
           <StatsCard
-            title="이번 달 등록"
+            title="이번달"
             value={summary.active}
             change={8}
-            icon={<Calendar className="w-6 h-6 text-teal-600" />}
+            icon={<Calendar className="w-4 h-4 sm:w-6 sm:h-6 text-teal-600" />}
             color="bg-teal-100"
           />
           <StatsCard
-            title="만료 예정"
+            title="만료예정"
             value={summary.expired}
             change={3}
-            icon={<AlertTriangle className="w-6 h-6 text-red-600" />}
+            icon={<AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 text-red-600" />}
             color="bg-red-100"
           />
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-1 sm:gap-4 mb-4 sm:mb-6 overflow-x-auto">
           {['지도', '목록', '통계', '만료'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium transition-colors text-xs sm:text-base flex-shrink-0 ${
                 activeTab === tab
                   ? 'bg-gray-900 text-white'
                   : 'bg-white text-gray-600 hover:bg-gray-100'
               }`}
             >
-              {tab === '지도' && <MapPin className="w-4 h-4 inline mr-2" />}
-              {tab === '목록' && <Filter className="w-4 h-4 inline mr-2" />}
-              {tab === '통계' && <Calendar className="w-4 h-4 inline mr-2" />}
-              {tab === '만료' && <AlertTriangle className="w-4 h-4 inline mr-2" />}
+              {tab === '지도' && <MapPin className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
+              {tab === '목록' && <Filter className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
+              {tab === '통계' && <Calendar className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
+              {tab === '만료' && <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
               {tab}
             </button>
           ))}
@@ -300,7 +289,7 @@ export default function Dashboard() {
 
         {/* Content Area */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             {activeTab === '지도' && <MapView />}
             {activeTab === '목록' && <ListView banners={banners} />}
             {activeTab === '통계' && <StatsView />}
@@ -333,21 +322,21 @@ function StatsCard({ title, value, change, icon, color }: {
 }) {
   return (
     <Card>
-      <CardContent className="p-6">
+      <CardContent className="p-3 sm:p-6">
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-600">{title}</p>
-            <div className="flex items-center gap-2">
-              <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] sm:text-sm font-medium text-gray-600 truncate">{title}</p>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <p className="text-lg sm:text-2xl font-bold text-gray-900">{value}</p>
               <Badge
                 variant={change > 0 ? "default" : "secondary"}
-                className={`text-xs ${change > 0 ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-600'}`}
+                className={`text-[9px] sm:text-xs ${change > 0 ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-600'}`}
               >
                 {change > 0 ? '+' : ''}{change}
               </Badge>
             </div>
           </div>
-          <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center`}>
+          <div className={`w-8 h-8 sm:w-12 sm:h-12 ${color} rounded-lg flex items-center justify-center flex-shrink-0`}>
             {icon}
           </div>
         </div>
@@ -723,76 +712,81 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   return (
     <div>
       {/* Filters */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">필터 및 검색</h3>
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h3 className="text-sm sm:text-lg font-semibold">필터 및 검색</h3>
           <Button
             variant="outline"
-            className="gap-2"
+            size="sm"
+            className="gap-1 sm:gap-2 text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-4"
             onClick={handleExportExcel}
             disabled={isExporting || filteredBanners.length === 0}
           >
-            <Download className="w-4 h-4" />
-            {isExporting ? '다운로드 중...' : '엑셀 다운로드'}
+            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">{isExporting ? '다운로드 중...' : '엑셀 다운로드'}</span>
+            <span className="sm:hidden">엑셀</span>
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2 sm:gap-4">
+          <div className="relative sm:col-span-2 md:col-span-1">
+            <Search className="w-3 h-3 sm:w-4 sm:h-4 absolute left-2 sm:left-3 top-2 sm:top-3 text-gray-400" />
             <Input
               placeholder="주소 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="pl-10"
+              className="pl-7 sm:pl-10 text-xs sm:text-sm h-8 sm:h-10"
             />
           </div>
           <Select value={selectedParty} onValueChange={setSelectedParty}>
-            <SelectTrigger>
-              <SelectValue placeholder="정당 선택" />
+            <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
+              <SelectValue placeholder="정당" />
             </SelectTrigger>
             <SelectContent>
               {uniqueParties.map(partyName => (
-                <SelectItem key={partyName} value={partyName}>
+                <SelectItem key={partyName} value={partyName} className="text-xs sm:text-sm">
                   {partyName}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
-            <SelectTrigger>
-              <SelectValue placeholder="행정동 선택" />
+            <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
+              <SelectValue placeholder="행정동" />
             </SelectTrigger>
             <SelectContent>
               {uniqueDistricts.map(district => (
-                <SelectItem key={district} value={district}>
+                <SelectItem key={district} value={district} className="text-xs sm:text-sm">
                   {district}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger>
+            <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
               <SelectValue placeholder="상태" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="active">활성</SelectItem>
-              <SelectItem value="expired">만료</SelectItem>
-              <SelectItem value="inactive">비활성</SelectItem>
+              <SelectItem value="active" className="text-xs sm:text-sm">활성</SelectItem>
+              <SelectItem value="expired" className="text-xs sm:text-sm">만료</SelectItem>
+              <SelectItem value="inactive" className="text-xs sm:text-sm">비활성</SelectItem>
             </SelectContent>
           </Select>
           <Button
             onClick={handleSearch}
             disabled={isSearching}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            size="sm"
+            className="bg-indigo-600 hover:bg-indigo-700 text-xs sm:text-sm h-8 sm:h-10"
           >
-            <Search className="w-4 h-4 mr-2" />
+            <Search className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
             검색
           </Button>
           <Button
             onClick={handleReset}
             variant="outline"
+            size="sm"
+            className="text-xs sm:text-sm h-8 sm:h-10"
             disabled={!searchQuery && !selectedParty && !selectedDistrict && !selectedStatus}
           >
             초기화
@@ -802,45 +796,49 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
 
       {/* Bulk Actions - Only show when authenticated and has permission */}
       {isAuthenticated && hasPermission('banners', 'update') && selectedBannerIds.size > 0 && (
-        <div className="mb-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-indigo-900">
-                {selectedBannerIds.size}개 선택됨
+        <div className="mb-3 sm:mb-4 p-2 sm:p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="text-xs sm:text-sm font-medium text-indigo-900">
+                {selectedBannerIds.size}개 선택
               </span>
               <Button
                 variant="outline"
                 size="sm"
+                className="text-xs sm:text-sm h-6 sm:h-8 px-2 sm:px-3"
                 onClick={() => setSelectedBannerIds(new Set())}
               >
-                선택 해제
+                해제
               </Button>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1 sm:gap-2 flex-wrap">
               <Button
                 variant="outline"
                 size="sm"
+                className="text-xs sm:text-sm h-6 sm:h-8 px-2 sm:px-3"
                 onClick={handleBulkActivate}
                 disabled={isBulkProcessing}
               >
-                일괄 활성화
+                활성화
               </Button>
               <Button
                 variant="outline"
                 size="sm"
+                className="text-xs sm:text-sm h-6 sm:h-8 px-2 sm:px-3"
                 onClick={handleBulkDeactivate}
                 disabled={isBulkProcessing}
               >
-                일괄 비활성화
+                비활성
               </Button>
               {hasPermission('banners', 'delete') && (
                 <Button
                   variant="destructive"
                   size="sm"
+                  className="text-xs sm:text-sm h-6 sm:h-8 px-2 sm:px-3"
                   onClick={handleBulkDelete}
                   disabled={isBulkProcessing}
                 >
-                  일괄 삭제
+                  삭제
                 </Button>
               )}
             </div>
@@ -849,16 +847,17 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       )}
 
       {/* Banner List */}
-      <div className="space-y-4">
+      <div className="space-y-2 sm:space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">현수막 목록 ({filteredBanners.length}개)</h3>
+          <h3 className="text-sm sm:text-lg font-semibold">목록 ({filteredBanners.length})</h3>
           {isAuthenticated && hasPermission('banners', 'update') && filteredBanners.length > 0 && (
             <Button
               variant="outline"
               size="sm"
+              className="text-xs sm:text-sm h-6 sm:h-8 px-2 sm:px-3"
               onClick={handleSelectAll}
             >
-              {selectedBannerIds.size === filteredBanners.length ? '전체 해제' : '전체 선택'}
+              {selectedBannerIds.size === filteredBanners.length ? '전체해제' : '전체선택'}
             </Button>
           )}
         </div>
@@ -918,57 +917,62 @@ function BannerCard({
 
   return (
     <div
-      className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+      className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-2 sm:p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
     >
-      {/* Checkbox */}
-      {onToggleSelect && (
-        <Checkbox
-          checked={isSelected}
-          onCheckedChange={onToggleSelect}
-          onClick={(e) => e.stopPropagation()}
-        />
-      )}
+      <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+        {/* Checkbox */}
+        {onToggleSelect && (
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={onToggleSelect}
+            onClick={(e) => e.stopPropagation()}
+            className="flex-shrink-0"
+          />
+        )}
 
-      {/* Banner Image and Content - clickable area */}
-      <div
-        className="flex items-center gap-4 flex-1 cursor-pointer min-w-0"
-        onClick={onClick}
-      >
-        <img
-          src={banner.image_url || PLACEHOLDER_IMAGES.banner}
-          alt={banner.text}
-          className="w-20 h-16 rounded-lg object-cover bg-gray-100 flex-shrink-0"
-        />
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-gray-900 mb-1 truncate">{banner.text}</h4>
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2 min-w-0">
-            <MapPin className="w-4 h-4 flex-shrink-0" />
-            <span className="truncate">{banner.address}</span>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge
-              style={{ backgroundColor: banner.party.color, color: 'white' }}
-              className="text-xs whitespace-nowrap"
-            >
-              {banner.party.name}
-            </Badge>
-            {isExpired && (
-              <Badge variant="destructive" className="text-xs whitespace-nowrap">
-                만료됨
+        {/* Banner Image and Content - clickable area */}
+        <div
+          className="flex items-center gap-2 sm:gap-4 flex-1 cursor-pointer min-w-0"
+          onClick={onClick}
+        >
+          <img
+            src={banner.image_url || PLACEHOLDER_IMAGES.banner}
+            alt={banner.text}
+            className="w-16 h-12 sm:w-20 sm:h-16 rounded-lg object-cover bg-gray-100 flex-shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-gray-900 text-xs sm:text-base mb-0.5 sm:mb-1 truncate">{banner.text}</h4>
+            <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm text-gray-500 mb-1 sm:mb-2 min-w-0">
+              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="truncate">{banner.address}</span>
+            </div>
+            <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+              <Badge
+                style={{ backgroundColor: banner.party.color, color: 'white' }}
+                className="text-[9px] sm:text-xs whitespace-nowrap px-1 sm:px-2"
+              >
+                {banner.party.name}
               </Badge>
-            )}
+              {isExpired && (
+                <Badge variant="destructive" className="text-[9px] sm:text-xs whitespace-nowrap px-1 sm:px-2">
+                  만료
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
       </div>
-      <div className="text-right flex-shrink-0">
-        <p className="text-sm text-gray-600 mb-1 whitespace-nowrap">
+
+      <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 flex-shrink-0 pl-8 sm:pl-0">
+        <p className="text-[10px] sm:text-sm text-gray-600 whitespace-nowrap">
           {banner.start_date} ~ {banner.end_date}
         </p>
         {hasPermission('banners', 'update') && (
-          <div className="flex gap-2">
+          <div className="flex gap-1 sm:gap-2">
             <Button
               variant="ghost"
               size="sm"
+              className="text-[10px] sm:text-sm h-6 sm:h-8 px-1.5 sm:px-3"
               onClick={async (e) => {
                 e.stopPropagation();
                 const newStatus = !banner.is_active;
@@ -1001,13 +1005,13 @@ function BannerCard({
                 }
               }}
             >
-              {banner.is_active ? '비활성화' : '활성화'}
+              {banner.is_active ? '비활성' : '활성'}
             </Button>
             {hasPermission('banners', 'delete') && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-red-600 hover:text-red-700"
+                className="text-red-600 hover:text-red-700 text-[10px] sm:text-sm h-6 sm:h-8 px-1.5 sm:px-3"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (confirm('정말 삭제하시겠습니까?')) {
@@ -1016,7 +1020,7 @@ function BannerCard({
                 }}
                 disabled={deleteBanner.isPending}
               >
-                {deleteBanner.isPending ? '삭제 중...' : '삭제'}
+                {deleteBanner.isPending ? '...' : '삭제'}
               </Button>
             )}
           </div>
