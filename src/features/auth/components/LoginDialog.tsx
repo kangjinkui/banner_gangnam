@@ -33,6 +33,8 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
     setSuccess(false);
     setLoading(true);
 
+    let loginSuccess = false;
+
     try {
       if (isSignUp) {
         await signUp({ email, password, name });
@@ -46,11 +48,11 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         }, 2000);
       } else {
         await signIn({ email, password });
+        loginSuccess = true;
         // Reset form
         setEmail('');
         setPassword('');
         setName('');
-        onOpenChange(false);
       }
     } catch (err: any) {
       // Handle email not confirmed error
@@ -68,6 +70,11 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
     } finally {
       // ALWAYS reset loading state in finally block
       setLoading(false);
+
+      // Close dialog after loading state is reset (prevents "처리 중..." stuck state)
+      if (loginSuccess) {
+        onOpenChange(false);
+      }
     }
   };
 

@@ -93,9 +93,36 @@ export default function BannerRegisterPage() {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file size (max 10MB for mobile)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: '파일 크기 초과',
+          description: '이미지 크기는 10MB 이하여야 합니다.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: '잘못된 파일 형식',
+          description: '이미지 파일만 업로드할 수 있습니다.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setPreviewImage(e.target?.result as string);
+      };
+      reader.onerror = () => {
+        toast({
+          title: '파일 읽기 실패',
+          description: '이미지를 읽는 중 오류가 발생했습니다.',
+          variant: 'destructive',
+        });
       };
       reader.readAsDataURL(file);
       form.setValue('image', file);
@@ -149,10 +176,21 @@ export default function BannerRegisterPage() {
 
   // Get current location and reverse geocode to address
   const handleGetCurrentLocation = () => {
+    // Check if geolocation is available
     if (!navigator.geolocation) {
       toast({
         title: '위치 정보를 사용할 수 없습니다',
         description: '브라우저에서 위치 정보를 지원하지 않습니다.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Check if the page is loaded over HTTPS (required for geolocation on mobile)
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+      toast({
+        title: '보안 연결이 필요합니다',
+        description: '위치 정보는 HTTPS 연결에서만 사용할 수 있습니다. 안전한 연결로 접속해주세요.',
         variant: 'destructive',
       });
       return;
@@ -167,7 +205,10 @@ export default function BannerRegisterPage() {
         try {
           // Use Kakao Maps API to reverse geocode
           const response = await fetch(
-            `/api/banners/reverse-geocode?lat=${latitude}&lng=${longitude}`
+            `/api/banners/reverse-geocode?lat=${latitude}&lng=${longitude}`,
+            {
+              signal: AbortSignal.timeout(15000), // 15 second timeout for mobile
+            }
           );
           const result = await response.json();
 
@@ -203,28 +244,31 @@ export default function BannerRegisterPage() {
       (error) => {
         setIsGettingLocation(false);
         let errorMessage = '위치 정보를 가져올 수 없습니다.';
+        let errorTitle = '위치 정보 가져오기 실패';
 
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = '위치 정보 접근 권한이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.';
+            errorTitle = '위치 권한이 거부되었습니다';
+            errorMessage = '설정 > 사이트 설정 > 위치에서 권한을 허용해주세요.\n\n' +
+              '모바일: 브라우저 설정에서 위치 권한을 허용해야 합니다.';
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = '위치 정보를 사용할 수 없습니다.';
+            errorMessage = '위치 정보를 사용할 수 없습니다. GPS가 꺼져있거나 실내에 있을 수 있습니다.';
             break;
           case error.TIMEOUT:
-            errorMessage = '위치 정보 요청 시간이 초과되었습니다.';
+            errorMessage = '위치 정보 요청 시간이 초과되었습니다. 다시 시도해주세요.';
             break;
         }
 
         toast({
-          title: '위치 정보 가져오기 실패',
+          title: errorTitle,
           description: errorMessage,
           variant: 'destructive',
         });
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 15000, // Increased to 15 seconds for mobile
         maximumAge: 0,
       }
     );
@@ -232,6 +276,13 @@ export default function BannerRegisterPage() {
 
   const onSubmit = async (data: BannerFormData) => {
     setIsSubmitting(true);
+
+    // Show loading toast for mobile users
+    const loadingToast = toast({
+      title: '현수막 등록 중...',
+      description: '잠시만 기다려주세요.',
+    });
+
     try {
       // Find selected party
       const selectedParty = parties.find(p => p.name === data.party);
@@ -254,29 +305,43 @@ export default function BannerRegisterPage() {
         formData.append('image', data.image);
       }
 
-      // Send to API
-      const response = await fetch('/api/banners', {
-        method: 'POST',
-        body: formData,
-      });
+      // Send to API with longer timeout for mobile
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 seconds for mobile
 
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        // Show success message with administrative district info
-        const districtInfo = result.data.administrative_district
-          ? ` (${result.data.administrative_district})`
-          : '';
-
-        toast({
-          title: '현수막이 등록되었습니다',
-          description: `${data.text} - ${data.address}${districtInfo}`,
+      try {
+        const response = await fetch('/api/banners', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
         });
 
-        // Redirect to dashboard (page will fetch fresh data from API)
-        router.push('/');
-      } else {
-        throw new Error(result.error || '현수막 등록에 실패했습니다.');
+        clearTimeout(timeoutId);
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          // Show success message with administrative district info
+          const districtInfo = result.data.administrative_district
+            ? ` (${result.data.administrative_district})`
+            : '';
+
+          toast({
+            title: '현수막이 등록되었습니다',
+            description: `${data.text} - ${data.address}${districtInfo}`,
+          });
+
+          // Redirect to dashboard (page will fetch fresh data from API)
+          router.push('/');
+        } else {
+          throw new Error(result.error || '현수막 등록에 실패했습니다.');
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          throw new Error('등록 시간이 초과되었습니다. 네트워크 연결을 확인하고 다시 시도해주세요.');
+        }
+        throw fetchError;
       }
     } catch (error) {
       console.error('Submission error:', error);
@@ -293,7 +358,7 @@ export default function BannerRegisterPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -302,21 +367,21 @@ export default function BannerRegisterPage() {
             className="gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            뒤로가기
+            <span className="hidden sm:inline">뒤로가기</span>
           </Button>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
               <MapPin className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">현수막 등록</h1>
-              <p className="text-sm text-gray-500">새로운 현수막 정보를 등록합니다</p>
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900">현수막 등록</h1>
+              <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">새로운 현수막 정보를 등록합니다</p>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="px-6 py-8 max-w-4xl mx-auto">
+      <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-4xl mx-auto pb-24 sm:pb-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -604,7 +669,14 @@ export default function BannerRegisterPage() {
                     size="lg"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? '등록 중...' : '현수막 등록하기'}
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        등록 중...
+                      </div>
+                    ) : (
+                      '현수막 등록하기'
+                    )}
                   </Button>
                 </div>
               </div>

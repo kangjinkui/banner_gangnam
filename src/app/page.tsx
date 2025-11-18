@@ -169,27 +169,27 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <MapPin className="w-6 h-6 text-white" />
+      <header className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">현수막 관리 시스템</h1>
-              <p className="text-sm text-gray-500">정당별 현수막 설치 현황 관리</p>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-xl font-semibold text-gray-900 truncate">현수막 관리 시스템</h1>
+              <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">정당별 현수막 설치 현황 관리</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             {isAuthenticated && user ? (
               <>
                 {/* User Info - clickable to go to profile */}
-                <Link href="/profile">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                    <UserIcon className="w-4 h-4 text-gray-600" />
-                    <div className="text-sm">
-                      <p className="font-medium text-gray-900">{user.email}</p>
-                      <p className="text-xs text-gray-500">
+                <Link href="/profile" className="flex-shrink-0">
+                  <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                    <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+                    <div className="text-xs sm:text-sm">
+                      <p className="font-medium text-gray-900 max-w-[120px] sm:max-w-none truncate">{user.email}</p>
+                      <p className="text-[10px] sm:text-xs text-gray-500">
                         {user.role === 'admin' ? '관리자' : '일반 사용자'}
                       </p>
                     </div>
@@ -200,38 +200,43 @@ export default function Dashboard() {
                 {hasPermission('parties', 'update') && (
                   <Button
                     variant="outline"
-                    className="gap-2"
+                    size="sm"
+                    className="gap-1 sm:gap-2 text-xs sm:text-sm"
                     onClick={() => setIsPartyManagementOpen(true)}
                   >
-                    <Users className="w-4 h-4" />
-                    정당 관리
+                    <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">정당 관리</span>
+                    <span className="sm:hidden">정당</span>
                   </Button>
                 )}
 
                 {hasPermission('banners', 'create') && (
-                  <Button asChild className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                  <Button asChild size="sm" className="gap-1 sm:gap-2 bg-indigo-600 hover:bg-indigo-700 text-xs sm:text-sm">
                     <Link href="/register">
-                      <MapPin className="w-4 h-4" />
-                      현수막 등록
+                      <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">현수막 등록</span>
+                      <span className="sm:hidden">등록</span>
                     </Link>
                   </Button>
                 )}
 
                 <Button
                   variant="ghost"
-                  className="gap-2"
+                  size="sm"
+                  className="gap-1 sm:gap-2 text-xs sm:text-sm"
                   onClick={() => signOut()}
                 >
-                  <LogOut className="w-4 h-4" />
-                  로그아웃
+                  <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">로그아웃</span>
                 </Button>
               </>
             ) : (
               <Button
-                className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+                size="sm"
+                className="gap-1 sm:gap-2 bg-indigo-600 hover:bg-indigo-700 text-xs sm:text-sm"
                 onClick={() => setIsLoginDialogOpen(true)}
               >
-                <UserIcon className="w-4 h-4" />
+                <UserIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                 로그인
               </Button>
             )}

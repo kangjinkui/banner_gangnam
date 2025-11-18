@@ -125,7 +125,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
 
       if (data.user) {
+        // Convert to app user with role
         const user = await convertToAppUser(data.user);
+
+        // Update auth state immediately
         setAuthState({
           user,
           isAuthenticated: true,
@@ -134,6 +137,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Sign in error:', error);
+      // Ensure loading state is reset on error
+      setAuthState(prev => ({
+        ...prev,
+        isLoading: false,
+      }));
       throw error;
     }
   };
