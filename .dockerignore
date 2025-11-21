@@ -57,3 +57,6 @@ plan.md
 # Vercel
 .vercel
 vercel.json
+
+# SSL certificates (mounted as volume, not part of build)
+nginx/ssl/
