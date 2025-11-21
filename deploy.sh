@@ -33,12 +33,22 @@ print_info "Starting deployment process..."
 print_info "Stopping Docker containers..."
 docker-compose down || print_warn "No containers to stop"
 
-# Step 2: Git pull
+# Step 2: Git pull (preserving local changes)
 print_info "Pulling latest changes from Git..."
 git fetch origin
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 print_info "Current branch: $CURRENT_BRANCH"
-git pull origin $CURRENT_BRANCH
+
+# Check for local changes
+if ! git diff-index --quiet HEAD --; then
+    print_warn "Local changes detected (will be preserved)"
+    git stash push -m "Auto-stash before deploy $(date '+%Y-%m-%d %H:%M:%S')"
+    git pull origin $CURRENT_BRANCH
+    print_info "Restoring local changes..."
+    git stash pop
+else
+    git pull origin $CURRENT_BRANCH
+fi
 
 # Step 3: Build and start containers
 print_info "Building and starting Docker containers..."
