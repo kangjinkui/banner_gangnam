@@ -21,9 +21,15 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if docker-compose is available
-if ! command -v docker-compose &> /dev/null; then
-    print_error "docker-compose not found. Please install docker-compose."
+# Check if docker compose is available
+if ! command -v docker &> /dev/null; then
+    print_error "docker not found. Please install docker."
+    exit 1
+fi
+
+# Check if docker compose plugin is available
+if ! docker compose version &> /dev/null; then
+    print_error "docker compose not found. Please install docker compose plugin."
     exit 1
 fi
 
@@ -31,7 +37,7 @@ print_info "Starting deployment process..."
 
 # Step 1: Stop and remove containers
 print_info "Stopping Docker containers..."
-docker-compose down || print_warn "No containers to stop"
+docker compose down || print_warn "No containers to stop"
 
 # Step 2: Git pull (preserving local changes)
 print_info "Pulling latest changes from Git..."
@@ -52,8 +58,8 @@ fi
 
 # Step 3: Build and start containers
 print_info "Building and starting Docker containers..."
-docker-compose build --no-cache
-docker-compose up -d
+docker compose build --no-cache
+docker compose up -d
 
 # Step 4: Wait for containers to start
 print_info "Waiting for containers to start (40 seconds)..."
@@ -96,7 +102,7 @@ fi
 
 # Step 6: Final status check
 print_info "Checking container status..."
-docker-compose ps
+docker compose ps
 
 # Step 7: Show recent logs
 print_info "Recent application logs:"
@@ -107,4 +113,4 @@ print_info "Deployment completed successfully! ✓"
 print_info "====================================="
 print_info "Application is running at: http://localhost:3000"
 print_info "To view logs: docker logs -f banner_gangnam_app"
-print_info "To stop: docker-compose down"
+print_info "To stop: docker compose down"
