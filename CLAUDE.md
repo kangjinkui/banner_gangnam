@@ -31,26 +31,39 @@ easynext auth        # Setup authentication
 - **Map**: Kakao Map API for geocoding and visualization
 - **Forms**: React Hook Form with Zod validation
 
-### Directory Structure (Following EasyNext Conventions)
+### Directory Structure (Frontend/Backend Separated)
 ```
 src/
-├── app/                          # Next.js App Router
-│   ├── api/                     # API routes (parties, banners, export)
-│   └── (pages)/                 # Page components
-├── components/ui/               # shadcn/ui components
-├── features/                    # Feature-based organization
-│   ├── parties/                 # Party management
-│   ├── banners/                 # Banner management
-│   └── map/                     # Map functionality
-├── lib/                         # Utility functions
+├── app/
+│   ├── api/                     # 🔵 Backend - API Routes
+│   │   ├── auth/               # Authentication APIs
+│   │   ├── banners/            # Banner CRUD APIs
+│   │   ├── parties/            # Party CRUD APIs
+│   │   ├── map/                # Geocoding APIs
+│   │   └── export/             # Excel/CSV export
+│   ├── (frontend)/             # 🟢 Frontend - Pages (Route Group)
+│   │   ├── profile/            # Profile page
+│   │   └── register/           # Registration page
+│   ├── layout.tsx              # Root layout
+│   ├── page.tsx                # Home page (map + table)
+│   └── providers.tsx           # React Query Provider
+├── features/                    # 🟢 Frontend - Feature modules
+│   ├── auth/                   # Login/password reset
+│   ├── banners/                # Banner management
+│   ├── map/                    # Kakao Map component
+│   └── parties/                # Party management
+├── components/ui/               # 🟢 Frontend - UI components (shadcn/ui)
+├── hooks/                       # 🟢 Frontend - Custom hooks
+├── store/                       # 🟢 Frontend - Zustand stores
+├── contexts/                    # 🟢 Frontend - React contexts
+├── lib/                         # 🔵 Backend - Business logic
 │   ├── database/               # Supabase database services
 │   ├── storage/                # File upload services
 │   ├── map/                    # Kakao Map API integration
-│   ├── services/               # Business logic
-│   └── validations/            # Zod schemas
-├── hooks/                       # Custom React hooks
-├── store/                       # Zustand stores
-└── types/                       # TypeScript type definitions
+│   ├── services/               # Business logic layer
+│   ├── validations/            # Zod schemas
+│   └── utils/                  # Shared utilities
+└── types/                       # 🔵🟢 Shared - TypeScript types
 ```
 
 ### Key Architectural Patterns
