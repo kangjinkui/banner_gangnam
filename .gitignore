@@ -45,3 +45,6 @@ next-env.d.ts
 
 # deployment scripts
 deploy.sh
+
+# archived files (development docs, scripts, samples)
+.archive

@@ -30,7 +30,12 @@
       "Bash(done)",
       "Bash(gcloud compute firewall-rules list:*)",
       "Bash(gcloud compute instances describe:*)",
-      "Bash(docker exec:*)"
+      "Bash(docker exec:*)",
+      "Bash(npm audit:*)",
+      "Bash(tree:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
