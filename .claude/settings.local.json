@@ -35,7 +35,9 @@
       "Bash(tree:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(nslookup:*)",
+      "Bash(wsl:*)"
     ],
     "deny": [],
     "ask": []
