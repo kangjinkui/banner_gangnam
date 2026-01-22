@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { MapPin, Users, Calendar, AlertTriangle, Download, Search, Filter } from 'lucide-react';
+import { MapPin, Users, Calendar, AlertTriangle, Download, Search, Filter, Shield } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -190,15 +190,24 @@ export default function Dashboard() {
 
                 {/* Admin buttons - icon only */}
                 {hasPermission('parties', 'update') && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3"
-                    onClick={() => setIsPartyManagementOpen(true)}
-                  >
-                    <Users className="w-4 h-4 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline ml-1">정당</span>
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3"
+                      onClick={() => setIsPartyManagementOpen(true)}
+                    >
+                      <Users className="w-4 h-4 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline ml-1">정당</span>
+                    </Button>
+
+                    <Button asChild variant="outline" size="sm" className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3">
+                      <Link href="/admin/users">
+                        <Shield className="w-4 h-4 sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline ml-1">사용자</span>
+                      </Link>
+                    </Button>
+                  </>
                 )}
 
                 {hasPermission('banners', 'create') && (
