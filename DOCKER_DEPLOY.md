@@ -2,6 +2,8 @@
 
 Digital Ocean 서버에 Docker를 이용하여 Next.js 프로젝트를 배포하는 방법입니다.
 
+Digital Ocean 서버에 Docker를 이용하여 Next.js 프로젝트를 배포하는 방법입니다.
+
 ## 사전 준비
 
 - Digital Ocean 서버 IP: `206.189.41.229`

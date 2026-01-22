@@ -128,7 +128,7 @@ export async function PATCH(
         old_role: targetUser.role,
         new_role: role,
       },
-      ip_address: request.headers.get('x-forwarded-for') || request.ip,
+      ip_address: request.headers.get('x-forwarded-for') || 'unknown',
       user_agent: request.headers.get('user-agent'),
     });
 
