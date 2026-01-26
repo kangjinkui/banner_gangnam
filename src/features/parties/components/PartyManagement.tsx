@@ -128,13 +128,13 @@ export function PartyManagement({ open, onOpenChange }: PartyManagementProps) {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`"${name}" 정당을 삭제하시겠습니까?\n연관된 현수막도 함께 영향을 받을 수 있습니다.`)) {
+    if (!confirm(`"${name}" 정당을 완전히 삭제하시겠습니까?\n연관된 현수막도 함께 영향을 받을 수 있습니다.`)) {
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/parties/${id}`, {
+      const response = await fetch(`/api/parties/${id}?hard=true`, {
         method: 'DELETE',
       });
 

@@ -1,5 +1,9 @@
 # Docker 배포 가이드
 
+완료되면 이제부터 배포 프로세스가 작동합니다:
+로컬: git push origin master
+서버: cd /var/www/banner_gangnam01 && ./deploy.sh
+
 Digital Ocean 서버에 Docker를 이용하여 Next.js 프로젝트를 배포하는 방법입니다.
 
 Digital Ocean 서버에 Docker를 이용하여 Next.js 프로젝트를 배포하는 방법입니다.
