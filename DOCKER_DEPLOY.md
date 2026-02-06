@@ -1,6 +1,22 @@
 # Docker 배포 가이드
 
 완료되면 이제부터 배포 프로세스가 작동합니다:
+방법 1: 서버에서 직접 Git Pull + 배포 (권장)
+# 1. Windows에서 WSL 실행
+wsl
+
+# 2. 서버 접속
+ssh root@206.189.41.229
+
+# 3. 프로젝트 디렉토리로 이동
+cd /var/www/banner_gangnam01
+
+# 4. Git에서 최신 코드 받기
+git pull origin master  # 또는 main
+
+# 5. 배포 스크립트 실행
+./deploy.sh
+
 로컬: git push origin master
 서버: cd /var/www/banner_gangnam01 && ./deploy.sh
 

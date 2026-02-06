@@ -1,0 +1,61 @@
+events {
+    worker_connections 1024;
+}
+
+http {
+    upstream nextjs_app {
+        server app:3000;
+    }
+
+    # Rate limiting
+    limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+
+    # Allow larger file uploads (for banner images)
+    client_max_body_size 20M;
+
+    # HTTP only (development)
+    server {
+        listen 80;
+        server_name localhost;
+
+        # Gzip compression
+        gzip on;
+        gzip_vary on;
+        gzip_proxied any;
+        gzip_comp_level 6;
+        gzip_types text/plain text/css text/xml text/javascript application/json application/javascript application/xml+rss application/rss+xml font/truetype font/opentype application/vnd.ms-fontobject image/svg+xml;
+
+        # Proxy settings
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+
+        # Health check endpoint
+        location /api/health {
+            proxy_pass http://nextjs_app;
+        }
+
+        # API routes with rate limiting
+        location /api/ {
+            limit_req zone=api_limit burst=20 nodelay;
+            proxy_pass http://nextjs_app;
+        }
+
+        # Static files caching
+        location /_next/static/ {
+            proxy_pass http://nextjs_app;
+            proxy_cache_valid 200 60m;
+            add_header Cache-Control "public, immutable, max-age=31536000";
+        }
+
+        # All other requests
+        location / {
+            proxy_pass http://nextjs_app;
+        }
+    }
+}
