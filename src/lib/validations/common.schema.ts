@@ -18,19 +18,19 @@ export const dateRangeSchema = z
     end_date: dateSchema,
   })
   .refine((data) => new Date(data.start_date) <= new Date(data.end_date), {
-    message: '종료일은 시작일보다 늦어야 합니다.',
+    message: '종료일은 시작일보다 빠를 수 없습니다.',
     path: ['end_date'],
   });
 
 export const coordinatesSchema = z.object({
   lat: z
     .number()
-    .min(-90, '위도는 -90도 이상이어야 합니다.')
-    .max(90, '위도는 90도 이하여야 합니다.'),
+    .min(-90, '위도는 -90 이상이어야 합니다.')
+    .max(90, '위도는 90 이하이어야 합니다.'),
   lng: z
     .number()
-    .min(-180, '경도는 -180도 이상이어야 합니다.')
-    .max(180, '경도는 180도 이하여야 합니다.'),
+    .min(-180, '경도는 -180 이상이어야 합니다.')
+    .max(180, '경도는 180 이하이어야 합니다.'),
 });
 
 export const paginationSchema = z.object({
@@ -44,13 +44,13 @@ export const sortSchema = z.object({
 });
 
 export const filterBaseSchema = z.object({
-  search: z.string().max(100, '검색어는 100자 이하여야 합니다.').optional(),
+  search: z.string().max(100, '검색어는 100자 이하이어야 합니다.').optional(),
   is_active: z.boolean().optional(),
 });
 
 export const imageFileSchema = z
   .instanceof(File)
-  .refine((file) => file.size <= 5 * 1024 * 1024, '이미지 파일은 5MB 이하여야 합니다.')
+  .refine((file) => file.size <= 5 * 1024 * 1024, '이미지 파일은 5MB 이하이어야 합니다.')
   .refine(
     (file) => ['image/jpeg', 'image/png', 'image/webp'].includes(file.type),
     '지원되는 이미지 형식: JPEG, PNG, WebP'
@@ -59,4 +59,4 @@ export const imageFileSchema = z
 export const addressSchema = z
   .string()
   .min(5, '주소는 5자 이상이어야 합니다.')
-  .max(200, '주소는 200자 이하여야 합니다.');
+  .max(200, '주소는 200자 이하이어야 합니다.');

@@ -8,10 +8,90 @@ import {
   type BannerUpdateInput,
   type BannerFormInput,
 } from '@/lib/validations';
-import { Banner, BannerWithParty, BannerStats, MapMarker } from '@/types/banner';
+import { Banner, BannerWithParty, BannerStats, MapMarker, BannerType } from '@/types/banner';
 import { QueryOptions } from '@/types';
 
 export class BannerService {
+  /**
+   * Check if banner is expired
+   * Rally banners never expire
+   */
+  static isExpired(banner: Banner): boolean {
+    // Rally banners never expire
+    if (banner.banner_type === 'rally') {
+      return false;
+    }
+
+    // No end_date means not expired
+    if (!banner.end_date) {
+      return false;
+    }
+
+    return new Date(banner.end_date) < new Date();
+  }
+
+  /**
+   * Get marker color based on banner type
+   */
+  static getMarkerColor(banner: BannerWithParty): string {
+    switch (banner.banner_type) {
+      case 'political':
+        return banner.party?.color || '#9CA3AF'; // gray-400
+      case 'public':
+        return '#10B981'; // green-500
+      case 'rally':
+        return '#3B82F6'; // blue-500
+      default:
+        return '#9CA3AF';
+    }
+  }
+
+  /**
+   * Get banner type label
+   */
+  static getBannerTypeLabel(type: BannerType): string {
+    const labels: Record<BannerType, string> = {
+      political: '정치',
+      public: '공공',
+      rally: '집회',
+    };
+    return labels[type];
+  }
+
+  /**
+   * Validate banner input based on type
+   */
+  static validateBannerInput(input: any): void {
+    const bannerType = input.banner_type || 'political';
+
+    switch (bannerType) {
+      case 'political':
+        if (!input.party_id) {
+          throw new Error('정치 현수막은 정당을 선택해야 합니다.');
+        }
+        if (!input.start_date || !input.end_date) {
+          throw new Error('정치 현수막은 기간을 입력해야 합니다.');
+        }
+        break;
+
+      case 'public':
+        if (!input.department) {
+          throw new Error('공공 현수막은 부서명을 입력해야 합니다.');
+        }
+        break;
+
+      case 'rally':
+        // Rally banners don't have additional required fields
+        break;
+    }
+
+    // Date range validation (if both exist)
+    if (input.start_date && input.end_date) {
+      if (new Date(input.start_date) > new Date(input.end_date)) {
+        throw new Error('종료일은 시작일보다 늦어야 합니다.');
+      }
+    }
+  }
   /**
    * Get all banners with optional filtering and pagination
    */
@@ -44,16 +124,16 @@ export class BannerService {
       ? await BannersService.getByBounds(bounds)
       : (await BannersService.getAll()).data;
 
-    const now = new Date();
-
     return banners.map((banner) => ({
       id: banner.id,
       position: { lat: banner.lat, lng: banner.lng },
-      party_color: banner.party.color,
-      party_name: banner.party.name,
+      banner_type: banner.banner_type,
+      party_color: banner.party?.color,
+      party_name: banner.party?.name,
+      department: banner.department,
       text: banner.text,
       address: banner.address,
-      is_expired: new Date(banner.end_date) < now,
+      is_expired: this.isExpired(banner),
     }));
   }
 
@@ -72,8 +152,11 @@ export class BannerService {
    */
   static async create(input: BannerFormInput): Promise<Banner> {
     // Validate input
-    const { image, ...bannerData } = input;
+    const { image, ...bannerData } = input as any;
     const validatedInput = bannerCreateSchema.parse(bannerData);
+
+    // Additional type-specific validation
+    this.validateBannerInput(validatedInput);
 
     try {
       // Step 1: Geocode address (includes administrative_district from Kakao API)
@@ -84,6 +167,7 @@ export class BannerService {
       const administrativeDistrict = geocodeResult.administrative_district || null;
 
       // Log for debugging
+      console.log('Banner creation - Type:', validatedInput.banner_type);
       console.log('Banner creation - Address:', validatedInput.address);
       console.log('Banner creation - Coordinates:', geocodeResult.lat, geocodeResult.lng);
       console.log('Banner creation - Administrative district:', administrativeDistrict);
@@ -98,13 +182,11 @@ export class BannerService {
         thumbnailUrl = uploadResult.thumbnailUrl;
       }
 
-      // Step 4: Create banner in database
-      const banner = await BannersService.create({
-        party_id: validatedInput.party_id,
+      // Step 4: Prepare banner data based on type
+      const bannerData: any = {
+        banner_type: validatedInput.banner_type,
         address: validatedInput.address,
         text: validatedInput.text,
-        start_date: validatedInput.start_date,
-        end_date: validatedInput.end_date,
         memo: validatedInput.memo,
         is_active: validatedInput.is_active,
         lat: geocodeResult.lat,
@@ -112,7 +194,27 @@ export class BannerService {
         administrative_district: administrativeDistrict,
         image_url: imageUrl,
         thumbnail_url: thumbnailUrl,
-      });
+      };
+
+      // Add type-specific fields
+      if (validatedInput.banner_type === 'political') {
+        bannerData.party_id = (validatedInput as any).party_id;
+        bannerData.start_date = (validatedInput as any).start_date;
+        bannerData.end_date = (validatedInput as any).end_date;
+      } else if (validatedInput.banner_type === 'public') {
+        bannerData.department = (validatedInput as any).department;
+        bannerData.party_id = null;
+        bannerData.start_date = (validatedInput as any).start_date || null;
+        bannerData.end_date = (validatedInput as any).end_date || null;
+      } else if (validatedInput.banner_type === 'rally') {
+        bannerData.party_id = null;
+        bannerData.department = null;
+        bannerData.start_date = (validatedInput as any).start_date || null;
+        bannerData.end_date = (validatedInput as any).end_date || null;
+      }
+
+      // Step 5: Create banner in database
+      const banner = await BannersService.create(bannerData);
 
       return banner;
     } catch (error) {
@@ -128,7 +230,7 @@ export class BannerService {
       throw new Error('올바른 현수막 ID를 입력하세요.');
     }
 
-    const { image, ...bannerData } = input;
+    const { image, ...bannerData } = input as any;
     const validatedInput = bannerUpdateSchema.parse(bannerData);
 
     // Check if banner exists
@@ -283,17 +385,23 @@ export class BannerService {
 
   /**
    * Check for expired banners
+   * Rally banners are excluded (they never expire)
    */
-  static async getExpiredBanners(): Promise<BannerWithParty[]> {
-    const now = new Date();
+  static async getExpiredBanners(includeRally: boolean = false): Promise<BannerWithParty[]> {
     const { data } = await BannersService.getAll({
       filters: {
         is_active: true,
-        date_range: { start_date: '', end_date: now.toISOString().split('T')[0] },
       },
     } as any);
 
-    return data.filter(banner => new Date(banner.end_date) < now);
+    return data.filter(banner => {
+      // Rally banners never expire
+      if (banner.banner_type === 'rally' && !includeRally) {
+        return false;
+      }
+
+      return this.isExpired(banner);
+    });
   }
 
   /**
@@ -332,31 +440,59 @@ export class BannerService {
       throw new Error('현수막을 찾을 수 없습니다.');
     }
 
-    // Prepare data for duplication (exclude ID and timestamps)
-    const duplicateData: BannerCreateInput = {
-      party_id: existingBanner.party_id,
-      address: existingBanner.address,
-      text: existingBanner.text,
-      start_date: existingBanner.start_date,
-      end_date: existingBanner.end_date,
-      memo: existingBanner.memo || undefined,
-      is_active: existingBanner.is_active,
-      ...overrides, // Apply any overrides
-    };
+    // Prepare data for duplication based on banner type
+    let duplicateData: any;
 
-    return BannersService.create({
-      party_id: duplicateData.party_id,
-      address: duplicateData.address,
-      text: duplicateData.text,
-      start_date: duplicateData.start_date,
-      end_date: duplicateData.end_date,
-      memo: duplicateData.memo,
-      is_active: duplicateData.is_active,
-      lat: existingBanner.lat,
-      lng: existingBanner.lng,
-      administrative_district: existingBanner.administrative_district || undefined,
-      // Note: Images are not duplicated to avoid storage issues
-    });
+    if (existingBanner.banner_type === 'political') {
+      duplicateData = {
+        banner_type: 'political' as const,
+        party_id: existingBanner.party_id!,
+        address: existingBanner.address,
+        text: existingBanner.text,
+        start_date: existingBanner.start_date!,
+        end_date: existingBanner.end_date!,
+        memo: existingBanner.memo || undefined,
+        is_active: existingBanner.is_active,
+        lat: existingBanner.lat,
+        lng: existingBanner.lng,
+        administrative_district: existingBanner.administrative_district || undefined,
+      };
+    } else if (existingBanner.banner_type === 'public') {
+      duplicateData = {
+        banner_type: 'public' as const,
+        department: existingBanner.department!,
+        address: existingBanner.address,
+        text: existingBanner.text,
+        start_date: existingBanner.start_date || undefined,
+        end_date: existingBanner.end_date || undefined,
+        memo: existingBanner.memo || undefined,
+        is_active: existingBanner.is_active,
+        lat: existingBanner.lat,
+        lng: existingBanner.lng,
+        administrative_district: existingBanner.administrative_district || undefined,
+      };
+    } else {
+      // rally
+      duplicateData = {
+        banner_type: 'rally' as const,
+        address: existingBanner.address,
+        text: existingBanner.text,
+        start_date: existingBanner.start_date || undefined,
+        end_date: existingBanner.end_date || undefined,
+        memo: existingBanner.memo || undefined,
+        is_active: existingBanner.is_active,
+        lat: existingBanner.lat,
+        lng: existingBanner.lng,
+        administrative_district: existingBanner.administrative_district || undefined,
+      };
+    }
+
+    // Apply overrides if provided
+    if (overrides) {
+      Object.assign(duplicateData, overrides);
+    }
+
+    return BannersService.create(duplicateData);
   }
 
   /**

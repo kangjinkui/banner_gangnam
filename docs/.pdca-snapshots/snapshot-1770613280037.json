@@ -1,0 +1,249 @@
+{
+  "timestamp": "2026-02-09T05:01:20.035Z",
+  "reason": "compaction",
+  "status": {
+    "version": "2.0",
+    "lastUpdated": "2026-02-09T04:55:14.474Z",
+    "activeFeatures": [
+      "banner_gangnam01",
+      "validations",
+      "banner.service.ts",
+      "banners",
+      "public-rally",
+      "register",
+      "scripts"
+    ],
+    "primaryFeature": "banner_gangnam01",
+    "features": {
+      "banner_gangnam01": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:33:46.329Z",
+          "lastUpdated": "2026-02-09T04:33:51.797Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/types/banner.ts"
+      },
+      "validations": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:34:35.988Z",
+          "lastUpdated": "2026-02-09T04:35:06.502Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/lib/validations/banner.schema.ts"
+      },
+      "banner.service.ts": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:43:40.665Z",
+          "lastUpdated": "2026-02-09T04:44:10.549Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/lib/services/banner.service.ts"
+      },
+      "banners": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:45:15.709Z",
+          "lastUpdated": "2026-02-09T04:45:32.705Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/app/api/banners/route.ts"
+      },
+      "public-rally": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:46:13.813Z",
+          "lastUpdated": "2026-02-09T04:46:13.813Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/app/public-rally/page.tsx"
+      },
+      "register": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:46:14.368Z",
+          "lastUpdated": "2026-02-09T04:46:14.368Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/app/public-rally/register/page.tsx"
+      },
+      "scripts": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:49:12.492Z",
+          "lastUpdated": "2026-02-09T04:55:14.473Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/scripts/docker-restart.sh"
+      }
+    },
+    "pipeline": {
+      "currentPhase": 1,
+      "level": "Dynamic",
+      "phaseHistory": []
+    },
+    "session": {
+      "startedAt": "2026-02-09T02:08:50.172Z",
+      "onboardingCompleted": false,
+      "lastActivity": "2026-02-09T04:55:14.474Z"
+    },
+    "history": [
+      {
+        "timestamp": "2026-02-09T04:33:46.329Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:33:47.130Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:33:48.427Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:33:50.104Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:33:51.797Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:34:35.988Z",
+        "feature": "validations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:34:37.182Z",
+        "feature": "validations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:34:39.139Z",
+        "feature": "validations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:34:41.092Z",
+        "feature": "validations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:35:06.502Z",
+        "feature": "validations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:43:40.665Z",
+        "feature": "banner.service.ts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:44:08.936Z",
+        "feature": "banner.service.ts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:44:09.509Z",
+        "feature": "banner.service.ts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:44:10.549Z",
+        "feature": "banner.service.ts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:45:15.709Z",
+        "feature": "banners",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:45:16.124Z",
+        "feature": "banners",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:45:32.705Z",
+        "feature": "banners",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:46:13.813Z",
+        "feature": "public-rally",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:46:14.368Z",
+        "feature": "register",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:49:12.492Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:55:14.474Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      }
+    ]
+  }
+}

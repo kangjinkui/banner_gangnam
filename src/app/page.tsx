@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,16 +20,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, User as UserIcon } from 'lucide-react';
 import { PLACEHOLDER_IMAGES } from '@/lib/utils/placeholder';
 
-// Mock data - 실제로는 Supabase에서 가져올 데이터
+// Mock data - fallback when API is unavailable
 const mockBannersData: BannerWithParty[] = [
   {
     id: '1',
+    banner_type: 'political',
     party_id: '1',
-    text: '함께 만드는 더 나은 미래',
-    address: '서울시 강남구 역삼동 123-45',
+    text: 'Clean streets, brighter future',
+    address: 'Seoul Gangnam-gu Teheran-ro 123-45',
     lat: 37.5665,
-    lng: 126.9780,
-    administrative_district: '역삼1동',
+    lng: 126.978,
+    administrative_district: 'Gangnam-gu',
     start_date: '2024-01-15',
     end_date: '2024-03-15',
     image_url: PLACEHOLDER_IMAGES.banner,
@@ -38,21 +39,22 @@ const mockBannersData: BannerWithParty[] = [
     updated_at: '2024-01-15T00:00:00Z',
     party: {
       id: '1',
-      name: '더불어민주당',
+      name: 'Blue Party',
       color: '#1D4ED8',
       is_active: true,
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z',
-    },
+      updated_at: '2024-01-01T00:00:00Z'
+    }
   },
   {
     id: '2',
+    banner_type: 'political',
     party_id: '2',
-    text: '국민과 함께하는 변화',
-    address: '서울시 서초구 서초동 678-90',
+    text: 'Neighborhood-first renewal',
+    address: 'Seoul Seocho-gu Seocho-daero 678-90',
     lat: 37.4835,
     lng: 127.0321,
-    administrative_district: '서초1동',
+    administrative_district: 'Seocho-gu',
     start_date: '2024-02-01',
     end_date: '2024-02-28',
     image_url: PLACEHOLDER_IMAGES.banner,
@@ -61,21 +63,22 @@ const mockBannersData: BannerWithParty[] = [
     updated_at: '2024-02-01T00:00:00Z',
     party: {
       id: '2',
-      name: '국민의힘',
+      name: 'Red Party',
       color: '#DC2626',
       is_active: true,
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z',
-    },
+      updated_at: '2024-01-01T00:00:00Z'
+    }
   },
   {
     id: '3',
+    banner_type: 'political',
     party_id: '3',
-    text: '청년을 위한 정책',
-    address: '서울시 강남구 논현동 456-78',
+    text: 'Youth-forward policy',
+    address: 'Seoul Gangnam-gu Yeoksam-ro 456-78',
     lat: 37.5133,
     lng: 127.0384,
-    administrative_district: '논현1동',
+    administrative_district: 'Gangnam-gu',
     start_date: '2024-01-20',
     end_date: '2024-04-20',
     image_url: PLACEHOLDER_IMAGES.banner,
@@ -84,17 +87,17 @@ const mockBannersData: BannerWithParty[] = [
     updated_at: '2024-01-20T00:00:00Z',
     party: {
       id: '3',
-      name: '정의당',
+      name: 'Justice Party',
       color: '#F59E0B',
       is_active: true,
       created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-01-01T00:00:00Z',
-    },
-  },
+      updated_at: '2024-01-01T00:00:00Z'
+    }
+  }
 ];
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState('목록');
+  const [activeTab, setActiveTab] = useState('Map');
   const [isPartyManagementOpen, setIsPartyManagementOpen] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [activePartyCount, setActivePartyCount] = useState(0);
@@ -175,7 +178,7 @@ export default function Dashboard() {
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
               <MapPin className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
-            <h1 className="text-sm sm:text-xl font-semibold text-gray-900 whitespace-nowrap">현수막관리시스템</h1>
+            <h1 className="text-sm sm:text-xl font-semibold text-gray-900 whitespace-nowrap">Banner Management</h1>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {isAuthenticated && user ? (
@@ -198,13 +201,13 @@ export default function Dashboard() {
                       onClick={() => setIsPartyManagementOpen(true)}
                     >
                       <Users className="w-4 h-4 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline ml-1">정당</span>
+                      <span className="hidden sm:inline ml-1">Parties</span>
                     </Button>
 
                     <Button asChild variant="outline" size="sm" className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3">
                       <Link href="/admin/users">
                         <Shield className="w-4 h-4 sm:w-4 sm:h-4" />
-                        <span className="hidden sm:inline ml-1">사용자</span>
+                        <span className="hidden sm:inline ml-1">Users</span>
                       </Link>
                     </Button>
                   </>
@@ -214,7 +217,7 @@ export default function Dashboard() {
                   <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3">
                     <Link href="/register">
                       <MapPin className="w-4 h-4 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline ml-1">등록</span>
+                      <span className="hidden sm:inline ml-1">Register</span>
                     </Link>
                   </Button>
                 )}
@@ -235,7 +238,7 @@ export default function Dashboard() {
                 onClick={() => setIsLoginDialogOpen(true)}
               >
                 <UserIcon className="w-4 h-4 sm:w-4 sm:h-4" />
-                <span className="ml-1.5">로그인</span>
+                <span className="ml-1.5">Login</span>
               </Button>
             )}
           </div>
@@ -246,28 +249,28 @@ export default function Dashboard() {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 mb-4 sm:mb-8">
           <StatsCard
-            title="총 현수막"
+            title="Total Banners"
             value={summary.total}
             change={12}
             icon={<MapPin className="w-4 h-4 sm:w-6 sm:h-6 text-indigo-600" />}
             color="bg-indigo-100"
           />
           <StatsCard
-            title="활성 정당"
+            title="Active Parties"
             value={activePartyCount}
             change={0}
             icon={<Users className="w-4 h-4 sm:w-6 sm:h-6 text-red-600" />}
             color="bg-red-100"
           />
           <StatsCard
-            title="이번달"
+            title="Active Banners"
             value={summary.active}
             change={8}
             icon={<Calendar className="w-4 h-4 sm:w-6 sm:h-6 text-teal-600" />}
             color="bg-teal-100"
           />
           <StatsCard
-            title="만료예정"
+            title="Expired"
             value={summary.expired}
             change={3}
             icon={<AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 text-red-600" />}
@@ -277,7 +280,7 @@ export default function Dashboard() {
 
         {/* Navigation Tabs */}
         <div className="flex gap-1 sm:gap-4 mb-4 sm:mb-6 overflow-x-auto">
-          {['지도', '목록', '통계', '만료'].map((tab) => (
+          {['Map', 'List', 'Stats', 'Expired'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -287,10 +290,10 @@ export default function Dashboard() {
                   : 'bg-white text-gray-600 hover:bg-gray-100'
               }`}
             >
-              {tab === '지도' && <MapPin className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
-              {tab === '목록' && <Filter className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
-              {tab === '통계' && <Calendar className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
-              {tab === '만료' && <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
+              {tab === 'Map' && <MapPin className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
+              {tab === 'List' && <Filter className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
+              {tab === 'Stats' && <Calendar className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
+              {tab === 'Expired' && <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
               {tab}
             </button>
           ))}
@@ -299,10 +302,10 @@ export default function Dashboard() {
         {/* Content Area */}
         <Card>
           <CardContent className="p-3 sm:p-6">
-            {activeTab === '지도' && <MapView />}
-            {activeTab === '목록' && <ListView banners={banners} />}
-            {activeTab === '통계' && <StatsView />}
-            {activeTab === '만료' && <ExpiredView banners={expiredBanners} />}
+            {activeTab === 'Map' && <MapView />}
+            {activeTab === 'List' && <ListView banners={banners} />}
+            {activeTab === 'Stats' && <StatsView />}
+            {activeTab === 'Expired' && <ExpiredView banners={expiredBanners} />}
           </CardContent>
         </Card>
       </div>
@@ -403,7 +406,7 @@ function MapView() {
                 size="sm"
                 onClick={() => setSelectedBanner(null)}
               >
-                ✕
+                Close
               </Button>
             </div>
           </CardContent>
@@ -413,7 +416,7 @@ function MapView() {
       {/* Legend */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">범례</CardTitle>
+          <CardTitle className="text-lg">Legend</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -557,7 +560,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   const handleBulkActivate = async () => {
     if (selectedBannerIds.size === 0) return;
 
-    if (!confirm(`선택한 ${selectedBannerIds.size}개의 현수막을 활성화하시겠습니까?`)) return;
+    if (!confirm(`?좏깮??${selectedBannerIds.size}媛쒖쓽 ?꾩닔留됱쓣 ?쒖꽦?뷀븯?쒓쿋?듬땲源?`)) return;
 
     setIsBulkProcessing(true);
     try {
@@ -572,7 +575,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       const results = await Promise.all(promises);
       const successCount = results.filter(r => r.ok).length;
 
-      alert(`${successCount}개의 현수막이 활성화되었습니다.`);
+      alert(`${successCount}媛쒖쓽 ?꾩닔留됱씠 ?쒖꽦?붾릺?덉뒿?덈떎.`);
 
       // Refresh data
       const response = await fetch('/api/banners?limit=1000');
@@ -586,7 +589,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       setSelectedBannerIds(new Set());
     } catch (error) {
       console.error('Bulk activate error:', error);
-      alert('일괄 활성화 중 오류가 발생했습니다.');
+      alert('?쇨큵 ?쒖꽦??以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.');
     } finally {
       setIsBulkProcessing(false);
     }
@@ -596,7 +599,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   const handleBulkDeactivate = async () => {
     if (selectedBannerIds.size === 0) return;
 
-    if (!confirm(`선택한 ${selectedBannerIds.size}개의 현수막을 비활성화하시겠습니까?`)) return;
+    if (!confirm(`?좏깮??${selectedBannerIds.size}媛쒖쓽 ?꾩닔留됱쓣 鍮꾪솢?깊솕?섏떆寃좎뒿?덇퉴?`)) return;
 
     setIsBulkProcessing(true);
     try {
@@ -611,7 +614,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       const results = await Promise.all(promises);
       const successCount = results.filter(r => r.ok).length;
 
-      alert(`${successCount}개의 현수막이 비활성화되었습니다.`);
+      alert(`${successCount}媛쒖쓽 ?꾩닔留됱씠 鍮꾪솢?깊솕?섏뿀?듬땲??`);
 
       // Refresh data
       const response = await fetch('/api/banners?limit=1000');
@@ -625,7 +628,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       setSelectedBannerIds(new Set());
     } catch (error) {
       console.error('Bulk deactivate error:', error);
-      alert('일괄 비활성화 중 오류가 발생했습니다.');
+      alert('?쇨큵 鍮꾪솢?깊솕 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.');
     } finally {
       setIsBulkProcessing(false);
     }
@@ -635,7 +638,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   const handleBulkDelete = async () => {
     if (selectedBannerIds.size === 0) return;
 
-    if (!confirm(`선택한 ${selectedBannerIds.size}개의 현수막을 영구 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
+    if (!confirm(`?좏깮??${selectedBannerIds.size}媛쒖쓽 ?꾩닔留됱쓣 ?곴뎄 ??젣?섏떆寃좎뒿?덇퉴?\n???묒뾽? ?섎룎由????놁뒿?덈떎.`)) return;
 
     setIsBulkProcessing(true);
     try {
@@ -648,7 +651,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       const results = await Promise.all(promises);
       const successCount = results.filter(r => r.ok).length;
 
-      alert(`${successCount}개의 현수막이 삭제되었습니다.`);
+      alert(`${successCount}媛쒖쓽 ?꾩닔留됱씠 ??젣?섏뿀?듬땲??`);
 
       // Refresh data
       const response = await fetch('/api/banners?limit=1000');
@@ -662,7 +665,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       setSelectedBannerIds(new Set());
     } catch (error) {
       console.error('Bulk delete error:', error);
-      alert('일괄 삭제 중 오류가 발생했습니다.');
+      alert('?쇨큵 ??젣 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.');
     } finally {
       setIsBulkProcessing(false);
     }
@@ -697,7 +700,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       });
 
       if (!response.ok) {
-        throw new Error('엑셀 다운로드에 실패했습니다.');
+        throw new Error('?묒? ?ㅼ슫濡쒕뱶???ㅽ뙣?덉뒿?덈떎.');
       }
 
       // Download the file
@@ -712,7 +715,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       document.body.removeChild(a);
     } catch (error) {
       console.error('Excel export error:', error);
-      alert('엑셀 다운로드 중 오류가 발생했습니다.');
+      alert('?묒? ?ㅼ슫濡쒕뱶 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.');
     } finally {
       setIsExporting(false);
     }
@@ -723,7 +726,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       {/* Filters */}
       <div className="mb-4 sm:mb-6">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h3 className="text-sm sm:text-lg font-semibold">필터 및 검색</h3>
+          <h3 className="text-sm sm:text-lg font-semibold">Filters & Search</h3>
           <Button
             variant="outline"
             size="sm"
@@ -732,8 +735,8 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
             disabled={isExporting || filteredBanners.length === 0}
           >
             <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">{isExporting ? '다운로드 중...' : '엑셀 다운로드'}</span>
-            <span className="sm:hidden">엑셀</span>
+            <span className="hidden sm:inline">{isExporting ? 'Downloading...' : 'Export Excel'}</span>
+            <span className="sm:hidden">Export</span>
           </Button>
         </div>
 
@@ -741,7 +744,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           <div className="relative sm:col-span-2 md:col-span-1">
             <Search className="w-3 h-3 sm:w-4 sm:h-4 absolute left-2 sm:left-3 top-2 sm:top-3 text-gray-400" />
             <Input
-              placeholder="주소 검색..."
+              placeholder="Search address or text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -750,7 +753,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           </div>
           <Select value={selectedParty} onValueChange={setSelectedParty}>
             <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
-              <SelectValue placeholder="정당" />
+              <SelectValue placeholder="Party" />
             </SelectTrigger>
             <SelectContent>
               {uniqueParties.map(partyName => (
@@ -762,7 +765,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           </Select>
           <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
             <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
-              <SelectValue placeholder="행정동" />
+              <SelectValue placeholder="District" />
             </SelectTrigger>
             <SelectContent>
               {uniqueDistricts.map(district => (
@@ -774,12 +777,12 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           </Select>
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
             <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
-              <SelectValue placeholder="상태" />
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="active" className="text-xs sm:text-sm">활성</SelectItem>
-              <SelectItem value="expired" className="text-xs sm:text-sm">만료</SelectItem>
-              <SelectItem value="inactive" className="text-xs sm:text-sm">비활성</SelectItem>
+              <SelectItem value="active" className="text-xs sm:text-sm">Active</SelectItem>
+              <SelectItem value="expired" className="text-xs sm:text-sm">Expired</SelectItem>
+              <SelectItem value="inactive" className="text-xs sm:text-sm">Inactive</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -789,7 +792,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
             className="bg-indigo-600 hover:bg-indigo-700 text-xs sm:text-sm h-8 sm:h-10"
           >
             <Search className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-            검색
+            Search
           </Button>
           <Button
             onClick={handleReset}
@@ -798,7 +801,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
             className="text-xs sm:text-sm h-8 sm:h-10"
             disabled={!searchQuery && !selectedParty && !selectedDistrict && !selectedStatus}
           >
-            초기화
+            Reset
           </Button>
         </div>
       </div>
@@ -809,7 +812,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="text-xs sm:text-sm font-medium text-indigo-900">
-                {selectedBannerIds.size}개 선택
+                {selectedBannerIds.size} selected
               </span>
               <Button
                 variant="outline"
@@ -817,7 +820,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
                 className="text-xs sm:text-sm h-6 sm:h-8 px-2 sm:px-3"
                 onClick={() => setSelectedBannerIds(new Set())}
               >
-                해제
+                Clear
               </Button>
             </div>
             <div className="flex gap-1 sm:gap-2 flex-wrap">
@@ -828,7 +831,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
                 onClick={handleBulkActivate}
                 disabled={isBulkProcessing}
               >
-                활성화
+                Activate
               </Button>
               <Button
                 variant="outline"
@@ -837,7 +840,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
                 onClick={handleBulkDeactivate}
                 disabled={isBulkProcessing}
               >
-                비활성
+                Deactivate
               </Button>
               {hasPermission('banners', 'delete') && (
                 <Button
@@ -847,7 +850,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
                   onClick={handleBulkDelete}
                   disabled={isBulkProcessing}
                 >
-                  삭제
+                  Delete
                 </Button>
               )}
             </div>
@@ -858,7 +861,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       {/* Banner List */}
       <div className="space-y-2 sm:space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm sm:text-lg font-semibold">목록 ({filteredBanners.length})</h3>
+          <h3 className="text-sm sm:text-lg font-semibold">List ({filteredBanners.length})</h3>
           {isAuthenticated && hasPermission('banners', 'update') && filteredBanners.length > 0 && (
             <Button
               variant="outline"
@@ -866,7 +869,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
               className="text-xs sm:text-sm h-6 sm:h-8 px-2 sm:px-3"
               onClick={handleSelectAll}
             >
-              {selectedBannerIds.size === filteredBanners.length ? '전체해제' : '전체선택'}
+              {selectedBannerIds.size === filteredBanners.length ? 'Clear All' : 'Select All'}
             </Button>
           )}
         </div>
@@ -886,13 +889,13 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
         ) : (
           <div className="text-center py-8 bg-gray-50 rounded-lg">
             <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-500">검색 결과가 없습니다.</p>
+            <p className="text-gray-500">No results found.</p>
             <Button
               onClick={handleReset}
               variant="outline"
               className="mt-4"
             >
-              필터 초기화
+              Reset Filters
             </Button>
           </div>
         )}
@@ -919,10 +922,15 @@ function BannerCard({
   isSelected?: boolean;
   onToggleSelect?: () => void;
 }) {
-  const isExpired = new Date(banner.end_date) < new Date();
+  const isExpired = banner.banner_type !== 'rally' && !!banner.end_date && new Date(banner.end_date) < new Date();
   const { updateBanner } = useBannerActions();
   const { hasPermission } = useAuth();
   const deleteBanner = useDeleteBanner();
+  const bannerTypeLabel = banner.banner_type === 'political'
+    ? 'Political'
+    : banner.banner_type === 'public'
+      ? 'Public'
+      : 'Rally';
 
   return (
     <div
@@ -956,15 +964,26 @@ function BannerCard({
               <span className="truncate">{banner.address}</span>
             </div>
             <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-              <Badge
-                style={{ backgroundColor: banner.party.color, color: 'white' }}
-                className="text-[9px] sm:text-xs whitespace-nowrap px-1 sm:px-2"
-              >
-                {banner.party.name}
-              </Badge>
+              {banner.party ? (
+                <Badge
+                  style={{ backgroundColor: banner.party.color, color: 'white' }}
+                  className="text-[9px] sm:text-xs whitespace-nowrap px-1 sm:px-2"
+                >
+                  {banner.party.name}
+                </Badge>
+              ) : (
+                <Badge className="text-[9px] sm:text-xs whitespace-nowrap px-1 sm:px-2">
+                  {bannerTypeLabel}
+                </Badge>
+              )}
+              {banner.banner_type === 'public' && banner.department && (
+                <Badge variant="secondary" className="text-[9px] sm:text-xs whitespace-nowrap px-1 sm:px-2">
+                  {banner.department}
+                </Badge>
+              )}
               {isExpired && (
                 <Badge variant="destructive" className="text-[9px] sm:text-xs whitespace-nowrap px-1 sm:px-2">
-                  만료
+                  Expired
                 </Badge>
               )}
             </div>
@@ -974,7 +993,7 @@ function BannerCard({
 
       <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 flex-shrink-0 pl-8 sm:pl-0">
         <p className="text-[10px] sm:text-sm text-gray-600 whitespace-nowrap">
-          {banner.start_date} ~ {banner.end_date}
+          {banner.start_date || '-'} ~ {banner.end_date || '-'}
         </p>
         {hasPermission('banners', 'update') && (
           <div className="flex gap-1 sm:gap-2">
@@ -986,8 +1005,8 @@ function BannerCard({
                 e.stopPropagation();
                 const newStatus = !banner.is_active;
                 const confirmMessage = newStatus
-                  ? '현수막을 활성화하시겠습니까?'
-                  : '현수막을 비활성화하시겠습니까?\n비활성화된 현수막은 지도와 목록에 표시되지 않습니다.';
+                  ? 'Activate this banner?'
+                  : 'Deactivate this banner? Deactivated banners are hidden from the main list.';
 
                 if (!confirm(confirmMessage)) return;
 
@@ -1002,19 +1021,19 @@ function BannerCard({
                     const result = await response.json();
                     if (result.success && result.data) {
                       updateBanner(banner.id, result.data);
-                      alert(newStatus ? '현수막이 활성화되었습니다.' : '현수막이 비활성화되었습니다.');
+                      alert(newStatus ? 'Banner activated.' : 'Banner deactivated.');
                     }
                   } else {
                     const error = await response.json();
-                    alert(error.error || '상태 변경에 실패했습니다.');
+                    alert(error.error || 'Failed to change status.');
                   }
                 } catch (error) {
                   console.error('Toggle active status error:', error);
-                  alert('상태 변경 중 오류가 발생했습니다.');
+                  alert('Error while changing status.');
                 }
               }}
             >
-              {banner.is_active ? '비활성' : '활성'}
+              {banner.is_active ? 'Deactivate' : 'Activate'}
             </Button>
             {hasPermission('banners', 'delete') && (
               <Button
@@ -1023,13 +1042,13 @@ function BannerCard({
                 className="text-red-600 hover:text-red-700 text-[10px] sm:text-sm h-6 sm:h-8 px-1.5 sm:px-3"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (confirm('정말 삭제하시겠습니까?')) {
+                  if (confirm('Delete this banner permanently?')) {
                     deleteBanner.mutate({ id: banner.id, hardDelete: true });
                   }
                 }}
                 disabled={deleteBanner.isPending}
               >
-                {deleteBanner.isPending ? '...' : '삭제'}
+                {deleteBanner.isPending ? '...' : 'Delete'}
               </Button>
             )}
           </div>
@@ -1059,7 +1078,7 @@ function StatsView() {
   }, {} as Record<string, { count: number; active: number; expired: number; color: string }>);
 
   const districtStats = banners.reduce((acc, banner) => {
-    const district = banner.administrative_district || '미분류';
+    const district = banner.administrative_district || 'Unknown';
     acc[district] = (acc[district] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -1071,25 +1090,25 @@ function StatsView() {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-blue-600">{summary.total}</div>
-            <div className="text-sm text-gray-600">전체 현수막</div>
+            <div className="text-sm text-gray-600">Total Banners</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-green-600">{summary.active}</div>
-            <div className="text-sm text-gray-600">활성 현수막</div>
+            <div className="text-sm text-gray-600">Active Banners</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-red-600">{summary.expired}</div>
-            <div className="text-sm text-gray-600">만료된 현수막</div>
+            <div className="text-sm text-gray-600">Expired Banners</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-purple-600">{summary.upcoming}</div>
-            <div className="text-sm text-gray-600">예정된 현수막</div>
+            <div className="text-sm text-gray-600">Upcoming</div>
           </CardContent>
         </Card>
       </div>
@@ -1098,7 +1117,7 @@ function StatsView() {
         {/* Party Statistics */}
         <Card>
           <CardHeader>
-            <CardTitle>정당별 현수막 현황</CardTitle>
+            <CardTitle>Banner Count by Party</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -1112,14 +1131,14 @@ function StatsView() {
                       />
                       <span className="font-medium">{party}</span>
                     </div>
-                    <span className="text-sm text-gray-600">{stats.count}개</span>
+                    <span className="text-sm text-gray-600">{stats.count}</span>
                   </div>
                   <div className="flex gap-2 text-xs">
                     <Badge variant="outline" className="text-green-600">
-                      활성: {stats.active}
+                      Active: {stats.active}
                     </Badge>
                     <Badge variant="outline" className="text-red-600">
-                      만료: {stats.expired}
+                      Expired: {stats.expired}
                     </Badge>
                   </div>
                 </div>
@@ -1131,15 +1150,15 @@ function StatsView() {
         {/* District Statistics - Banner count by party per district */}
         <Card>
           <CardHeader>
-            <CardTitle>행정동별 정당 현수막 현황</CardTitle>
-            <CardDescription>각 행정동별 정당의 현수막 개수 (2개 초과 여부 확인)</CardDescription>
+            <CardTitle>Party Counts by District</CardTitle>
+            <CardDescription>Shows banners per party by district (highlighted when a party exceeds 2)</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {(() => {
                 // Calculate banner count by district and party
                 const districtPartyStats = banners.reduce((acc, banner) => {
-                  const district = banner.administrative_district || '미분류';
+                  const district = banner.administrative_district || 'Unknown';
                   const partyName = banner.party.name;
 
                   if (!acc[district]) {
@@ -1166,12 +1185,12 @@ function StatsView() {
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-gray-900">{district}</span>
-                            <span className="text-sm text-gray-500">총 {totalBanners}개</span>
+                            <span className="text-sm text-gray-500">Total {totalBanners}</span>
                           </div>
                           {hasViolation && (
                             <Badge variant="destructive" className="gap-1">
                               <AlertTriangle className="w-3 h-3" />
-                              2개 초과
+                              Exceeds 2
                             </Badge>
                           )}
                         </div>
@@ -1197,7 +1216,7 @@ function StatsView() {
                                     stats.count > 2 ? 'text-red-600' : 'text-gray-700'
                                   }`}
                                 >
-                                  {stats.count}개
+                                  {stats.count}
                                 </span>
                               </div>
                             ))}
@@ -1214,7 +1233,7 @@ function StatsView() {
       {/* Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle>최근 등록 현황</CardTitle>
+          <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -1253,9 +1272,9 @@ function ExpiredView({ banners }: { banners: BannerWithParty[] }) {
     <div>
       <div className="flex items-center gap-2 mb-4">
         <AlertTriangle className="w-5 h-5 text-red-600" />
-        <h3 className="text-lg font-semibold text-red-600">만료된 현수막</h3>
+        <h3 className="text-lg font-semibold text-red-600">Expired Banners</h3>
       </div>
-      <p className="text-gray-600 mb-6">만료된 현수막 목록이 여기에 표시됩니다.</p>
+      <p className="text-gray-600 mb-6">List of banners that have expired.</p>
 
       {banners.length > 0 ? (
         <div className="space-y-4">
@@ -1272,7 +1291,7 @@ function ExpiredView({ banners }: { banners: BannerWithParty[] }) {
         </div>
       ) : (
         <div className="text-center py-8">
-          <p className="text-gray-500">만료된 현수막이 없습니다.</p>
+          <p className="text-gray-500">No expired banners.</p>
         </div>
       )}
 
@@ -1285,3 +1304,6 @@ function ExpiredView({ banners }: { banners: BannerWithParty[] }) {
     </div>
   );
 }
+
+
+

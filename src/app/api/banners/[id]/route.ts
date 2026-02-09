@@ -55,6 +55,8 @@ export async function PUT(
     const formData = await request.formData();
 
     // Extract form fields
+    const bannerType = formData.get('banner_type') as string || undefined;
+    const department = formData.get('department') as string || undefined;
     const partyId = formData.get('party_id') as string || undefined;
     const address = formData.get('address') as string || undefined;
     const text = formData.get('text') as string || undefined;
@@ -67,6 +69,8 @@ export async function PUT(
 
     // Prepare data for validation (only include defined values)
     const bannerData: any = {};
+    if (bannerType) bannerData.banner_type = bannerType;
+    if (department !== undefined) bannerData.department = department;
     if (partyId) bannerData.party_id = partyId;
     if (address) bannerData.address = address;
     if (text) bannerData.text = text;
@@ -75,14 +79,39 @@ export async function PUT(
     if (memo !== undefined) bannerData.memo = memo;
     if (isActive !== undefined) bannerData.is_active = isActive;
 
+    // Enforce type-specific fields when banner_type is provided
+    if (bannerType === 'political') {
+      if (!partyId) {
+        return NextResponse.json({
+          success: false,
+          error: '정치 현수막은 정당이 필요합니다.',
+        }, { status: 400 });
+      }
+    }
+
+    if (bannerType === 'public') {
+      if (!department) {
+        return NextResponse.json({
+          success: false,
+          error: '공공 현수막은 부서명이 필요합니다.',
+        }, { status: 400 });
+      }
+      bannerData.party_id = null;
+    }
+
+    if (bannerType === 'rally') {
+      bannerData.party_id = null;
+      bannerData.department = null;
+    }
+
     // Validate input
     const validatedData = bannerUpdateSchema.parse(bannerData);
 
-    // Update banner with image
+    // Update banner with image (cast to any to allow image field)
     const banner = await BannerService.update(id, {
       ...validatedData,
       image: image || undefined,
-    });
+    } as any);
 
     return NextResponse.json({
       success: true,
@@ -137,6 +166,31 @@ export async function PATCH(
     }
 
     const body = await request.json();
+
+    // Enforce type-specific fields when banner_type is provided
+    if (body?.banner_type === 'political') {
+      if (!body.party_id) {
+        return NextResponse.json({
+          success: false,
+          error: '정치 현수막은 정당이 필요합니다.',
+        }, { status: 400 });
+      }
+    }
+
+    if (body?.banner_type === 'public') {
+      if (!body.department) {
+        return NextResponse.json({
+          success: false,
+          error: '공공 현수막은 부서명이 필요합니다.',
+        }, { status: 400 });
+      }
+      body.party_id = null;
+    }
+
+    if (body?.banner_type === 'rally') {
+      body.party_id = null;
+      body.department = null;
+    }
 
     // Validate input
     const validatedData = bannerUpdateSchema.parse(body);

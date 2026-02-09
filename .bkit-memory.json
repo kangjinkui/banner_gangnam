@@ -1,0 +1,36 @@
+{
+  "currentFeature": "public-rally-banners",
+  "phase": "do",
+  "status": "completed",
+  "startedAt": "2026-02-09T00:00:00Z",
+  "lastUpdated": "2026-02-09T00:00:00Z",
+  "tasks": [
+    {
+      "id": "plan-public-rally-banners",
+      "name": "[Plan] public-rally-banners",
+      "status": "completed",
+      "createdAt": "2026-02-09T00:00:00Z",
+      "completedAt": "2026-02-09T00:00:00Z"
+    },
+    {
+      "id": "design-public-rally-banners",
+      "name": "[Design] public-rally-banners",
+      "status": "completed",
+      "createdAt": "2026-02-09T00:00:00Z",
+      "completedAt": "2026-02-09T00:00:00Z",
+      "blockedBy": "plan-public-rally-banners"
+    },
+    {
+      "id": "do-public-rally-banners",
+      "name": "[Do] public-rally-banners",
+      "status": "completed",
+      "createdAt": "2026-02-09T00:00:00Z",
+      "completedAt": "2026-02-09T00:00:00Z",
+      "blockedBy": "design-public-rally-banners"
+    }
+  ],
+  "documents": {
+    "plan": "docs/01-plan/features/public-rally-banners.plan.md",
+    "design": "docs/02-design/features/public-rally-banners.design.md"
+  }
+}

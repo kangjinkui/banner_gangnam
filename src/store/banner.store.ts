@@ -49,6 +49,9 @@ const initialFilters: BannerFilterOptions = {
   party_id: [],
   administrative_district: [],
   date_range: undefined,
+  banner_type: undefined,
+  department: undefined,
+  exclude_rally_expired: false,
 };
 
 export const useBannerStore = create<BannerState>()(
@@ -128,7 +131,12 @@ export const useBannerStore = create<BannerState>()(
       getExpiredBanners: () => {
         const state = get();
         const now = new Date();
-        return state.banners.filter((banner) => new Date(banner.end_date) < now);
+        return state.banners.filter((banner) => {
+          // Rally banners don't expire
+          if (banner.banner_type === 'rally') return false;
+          // Check if banner has end_date and is expired
+          return banner.end_date && new Date(banner.end_date) < now;
+        });
       },
 
       getBannersByParty: (partyId) => {
@@ -186,8 +194,12 @@ export const useActiveBanners = () => useBannerStore((state) =>
 
 export const useExpiredBanners = () => useBannerStore((state) => {
   const now = new Date();
-  // Only count active banners
-  return state.banners.filter((banner) => banner.is_active && new Date(banner.end_date) < now);
+  // Only count active banners, exclude rally banners (they don't expire)
+  return state.banners.filter((banner) => {
+    if (!banner.is_active) return false;
+    if (banner.banner_type === 'rally') return false;
+    return banner.end_date && new Date(banner.end_date) < now;
+  });
 });
 
 export const useBannerById = (id: string | undefined) => useBannerStore((state) =>
@@ -212,8 +224,13 @@ export const useBannerSummary = () => useBannerStore((state) => {
   // Only count active banners for statistics
   const activeBanners = state.banners.filter((b) => b.is_active);
   const active = activeBanners.length;
-  const expired = activeBanners.filter((b) => new Date(b.end_date) < now).length;
-  const upcoming = activeBanners.filter((b) => new Date(b.start_date) > now).length;
+  // Rally banners don't expire
+  const expired = activeBanners.filter((b) =>
+    b.banner_type !== 'rally' && b.end_date && new Date(b.end_date) < now
+  ).length;
+  const upcoming = activeBanners.filter((b) =>
+    b.start_date && new Date(b.start_date) > now
+  ).length;
 
   return {
     total: activeBanners.length, // Only active banners

@@ -17,6 +17,16 @@ export class BannersService {
 
     // Apply filters
     if (options?.filters) {
+      if (options.filters.banner_type) {
+        if (Array.isArray(options.filters.banner_type)) {
+          query = query.in('banner_type', options.filters.banner_type);
+        } else if (options.filters.banner_type !== 'all') {
+          query = query.eq('banner_type', options.filters.banner_type);
+        }
+      }
+      if (options.filters.department) {
+        query = query.eq('department', options.filters.department);
+      }
       if (options.filters.search) {
         query = query.or(`text.ilike.%${options.filters.search}%,address.ilike.%${options.filters.search}%,memo.ilike.%${options.filters.search}%`);
       }
@@ -35,6 +45,17 @@ export class BannersService {
         }
         if (options.filters.date_range.end_date) {
           query = query.lte('start_date', options.filters.date_range.end_date);
+        }
+      }
+      if (typeof options.filters.is_expired === 'boolean') {
+        const nowIso = new Date().toISOString();
+        if (options.filters.is_expired) {
+          query = query.lt('end_date', nowIso);
+          if (options.filters.exclude_rally_expired) {
+            query = query.neq('banner_type', 'rally');
+          }
+        } else {
+          query = query.or(`end_date.is.null,end_date.gte.${nowIso},banner_type.eq.rally`);
         }
       }
     }
@@ -120,15 +141,19 @@ export class BannersService {
    * Create a new banner
    */
   static async create(input: BannerCreateInput & { lat: number; lng: number; administrative_district?: string; image_url?: string; thumbnail_url?: string }): Promise<Banner> {
+    const isPolitical = input.banner_type === 'political';
+    const isPublic = input.banner_type === 'public';
     const insertData: TablesInsert<'banners'> = {
-      party_id: input.party_id,
+      banner_type: input.banner_type,
+      party_id: isPolitical ? input.party_id : null,
+      department: isPublic ? input.department : null,
       address: input.address,
       lat: input.lat,
       lng: input.lng,
       administrative_district: input.administrative_district,
       text: input.text,
-      start_date: input.start_date,
-      end_date: input.end_date,
+      start_date: input.start_date ?? null,
+      end_date: input.end_date ?? null,
       image_url: input.image_url,
       thumbnail_url: input.thumbnail_url,
       memo: input.memo,
@@ -162,7 +187,9 @@ export class BannersService {
     }
 
     const updateData: TablesUpdate<'banners'> = {};
+    if (input.banner_type !== undefined) updateData.banner_type = input.banner_type;
     if (input.party_id !== undefined) updateData.party_id = input.party_id;
+    if (input.department !== undefined) updateData.department = input.department;
     if (input.address !== undefined) updateData.address = input.address;
     if (input.lat !== undefined) updateData.lat = input.lat;
     if (input.lng !== undefined) updateData.lng = input.lng;
@@ -255,6 +282,16 @@ export class BannersService {
     if (filters?.administrative_district?.length) {
       query = query.in('administrative_district', filters.administrative_district);
     }
+    if (filters?.banner_type) {
+      if (Array.isArray(filters.banner_type)) {
+        query = query.in('banner_type', filters.banner_type);
+      } else if (filters.banner_type !== 'all') {
+        query = query.eq('banner_type', filters.banner_type);
+      }
+    }
+    if (filters?.department) {
+      query = query.eq('department', filters.department);
+    }
 
     const { data, error } = await query;
 
@@ -263,24 +300,53 @@ export class BannersService {
     }
 
     const now = new Date();
+    const isExpired = (banner: BannerWithParty) =>
+      banner.banner_type !== 'rally' &&
+      !!banner.end_date &&
+      new Date(banner.end_date) < now;
+
     const stats: BannerStats = {
       total: data.length,
-      active: data.filter(b => b.is_active).length,
-      expired: data.filter(b => new Date(b.end_date) < now).length,
+      active: data.filter((b) => b.is_active).length,
+      expired: data.filter((b) => isExpired(b)).length,
+      by_type: {
+        political: 0,
+        public: 0,
+        rally: 0,
+      },
+      by_department: {},
       by_district: {},
       by_party: {},
     };
 
-    // Group by district
-    data.forEach(banner => {
-      if (banner.administrative_district) {
-        stats.by_district[banner.administrative_district] = (stats.by_district[banner.administrative_district] || 0) + 1;
-      }
-    });
+    data.forEach((banner) => {
+      // by_type
+      stats.by_type[banner.banner_type]++;
 
-    // Group by party
-    data.forEach(banner => {
-      stats.by_party[banner.party_id] = (stats.by_party[banner.party_id] || 0) + 1;
+      // by_department (public only)
+      if (banner.banner_type === 'public' && banner.department) {
+        if (!stats.by_department[banner.department]) {
+          stats.by_department[banner.department] = {
+            total: 0,
+            active: 0,
+            expired: 0,
+          };
+        }
+        stats.by_department[banner.department].total++;
+        if (banner.is_active) stats.by_department[banner.department].active++;
+        if (isExpired(banner)) stats.by_department[banner.department].expired++;
+      }
+
+      // by_district
+      if (banner.administrative_district) {
+        stats.by_district[banner.administrative_district] =
+          (stats.by_district[banner.administrative_district] || 0) + 1;
+      }
+
+      // by_party (political only)
+      if (banner.banner_type === 'political' && banner.party_id) {
+        stats.by_party[banner.party_id] = (stats.by_party[banner.party_id] || 0) + 1;
+      }
     });
 
     return stats;

@@ -12,6 +12,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const search = searchParams.get('search') || undefined;
     const isActive = searchParams.get('is_active');
+    const bannerType = searchParams.get('banner_type') || undefined;
+    const department = searchParams.get('department') || undefined;
     const partyIds = searchParams.get('party_ids')?.split(',').filter(Boolean);
     const districts = searchParams.get('districts')?.split(',').filter(Boolean);
     const startDate = searchParams.get('start_date') || undefined;
@@ -47,6 +49,8 @@ export async function GET(request: NextRequest) {
       page,
       limit,
       filters: {
+        banner_type: bannerType as 'political' | 'public' | 'rally' | 'all' | undefined,
+        department,
         search,
         is_active: isActive ? isActive === 'true' : undefined,
         party_id: partyIds,
@@ -84,26 +88,40 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
 
-    // Extract form fields
-    const partyId = formData.get('party_id') as string;
+    // Extract common fields
+    const bannerType = (formData.get('banner_type') as string) || 'political';
     const address = formData.get('address') as string;
     const text = formData.get('text') as string;
-    const startDate = formData.get('start_date') as string;
-    const endDate = formData.get('end_date') as string;
     const memo = formData.get('memo') as string || undefined;
     const isActive = formData.get('is_active') === 'true';
     const image = formData.get('image') as File | null;
 
-    // Prepare data for validation
-    const bannerData = {
-      party_id: partyId,
+    // Prepare data based on banner type
+    const bannerData: any = {
+      banner_type: bannerType,
       address,
       text,
-      start_date: startDate,
-      end_date: endDate,
       memo,
       is_active: isActive,
     };
+
+    // Add type-specific fields
+    if (bannerType === 'political') {
+      bannerData.party_id = formData.get('party_id') as string;
+      bannerData.start_date = formData.get('start_date') as string;
+      bannerData.end_date = formData.get('end_date') as string;
+    } else if (bannerType === 'public') {
+      bannerData.department = formData.get('department') as string;
+      const startDate = formData.get('start_date') as string;
+      const endDate = formData.get('end_date') as string;
+      if (startDate) bannerData.start_date = startDate;
+      if (endDate) bannerData.end_date = endDate;
+    } else if (bannerType === 'rally') {
+      const startDate = formData.get('start_date') as string;
+      const endDate = formData.get('end_date') as string;
+      if (startDate) bannerData.start_date = startDate;
+      if (endDate) bannerData.end_date = endDate;
+    }
 
     // Validate input
     const validatedData = bannerCreateSchema.parse(bannerData);
@@ -112,7 +130,7 @@ export async function POST(request: NextRequest) {
     const banner = await BannerService.create({
       ...validatedData,
       image: image || undefined,
-    });
+    } as any);
 
     return NextResponse.json({
       success: true,

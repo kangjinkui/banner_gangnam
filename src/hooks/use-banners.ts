@@ -27,6 +27,9 @@ const bannerApi = {
     if (options?.filters?.administrative_district?.length) params.set('districts', options.filters.administrative_district.join(','));
     if (options?.filters?.date_range?.start_date) params.set('start_date', options.filters.date_range.start_date);
     if (options?.filters?.date_range?.end_date) params.set('end_date', options.filters.date_range.end_date);
+    if (options?.filters?.banner_type) params.set('banner_type', options.filters.banner_type);
+    if (options?.filters?.department) params.set('department', options.filters.department);
+    if (options?.filters?.exclude_rally_expired !== undefined) params.set('exclude_rally_expired', options.filters.exclude_rally_expired.toString());
     if (options?.sort?.field) params.set('sort_field', options.sort.field);
     if (options?.sort?.direction) params.set('sort_direction', options.sort.direction);
 
@@ -53,14 +56,27 @@ const bannerApi = {
   create: async (data: BannerFormInput): Promise<ApiResponse<BannerWithParty>> => {
     const formData = new FormData();
 
-    formData.append('party_id', data.party_id);
+    // Common fields
+    formData.append('banner_type', data.banner_type);
     formData.append('address', data.address);
     formData.append('text', data.text);
-    formData.append('start_date', data.start_date);
-    formData.append('end_date', data.end_date);
     if (data.memo) formData.append('memo', data.memo);
     formData.append('is_active', data.is_active?.toString() || 'true');
     if (data.image) formData.append('image', data.image);
+
+    // Type-specific fields
+    if (data.banner_type === 'political') {
+      formData.append('party_id', data.party_id);
+      formData.append('start_date', data.start_date);
+      formData.append('end_date', data.end_date);
+    } else if (data.banner_type === 'public') {
+      formData.append('department', data.department);
+      if (data.start_date) formData.append('start_date', data.start_date);
+      if (data.end_date) formData.append('end_date', data.end_date);
+    } else if (data.banner_type === 'rally') {
+      if (data.start_date) formData.append('start_date', data.start_date);
+      if (data.end_date) formData.append('end_date', data.end_date);
+    }
 
     const response = await fetch('/api/banners', {
       method: 'POST',
@@ -73,14 +89,27 @@ const bannerApi = {
   update: async (id: string, data: BannerFormInput): Promise<ApiResponse<BannerWithParty>> => {
     const formData = new FormData();
 
-    if (data.party_id) formData.append('party_id', data.party_id);
+    // Common fields
+    if (data.banner_type) formData.append('banner_type', data.banner_type);
     if (data.address) formData.append('address', data.address);
     if (data.text) formData.append('text', data.text);
-    if (data.start_date) formData.append('start_date', data.start_date);
-    if (data.end_date) formData.append('end_date', data.end_date);
     if (data.memo !== undefined) formData.append('memo', data.memo);
     if (data.is_active !== undefined) formData.append('is_active', data.is_active.toString());
     if (data.image) formData.append('image', data.image);
+
+    // Type-specific fields
+    if (data.banner_type === 'political') {
+      if ('party_id' in data) formData.append('party_id', data.party_id);
+      if ('start_date' in data) formData.append('start_date', data.start_date);
+      if ('end_date' in data) formData.append('end_date', data.end_date);
+    } else if (data.banner_type === 'public') {
+      if ('department' in data) formData.append('department', data.department);
+      if ('start_date' in data && data.start_date) formData.append('start_date', data.start_date);
+      if ('end_date' in data && data.end_date) formData.append('end_date', data.end_date);
+    } else if (data.banner_type === 'rally') {
+      if ('start_date' in data && data.start_date) formData.append('start_date', data.start_date);
+      if ('end_date' in data && data.end_date) formData.append('end_date', data.end_date);
+    }
 
     const response = await fetch(`/api/banners/${id}`, {
       method: 'PUT',
@@ -123,6 +152,7 @@ const bannerApi = {
 
     if (filters?.party_id?.length) params.set('party_ids', filters.party_id.join(','));
     if (filters?.administrative_district?.length) params.set('districts', filters.administrative_district.join(','));
+    if (filters?.banner_type) params.set('banner_type', filters.banner_type);
 
     const response = await fetch(`/api/banners/stats?${params}`);
     if (!response.ok) throw new Error('Failed to fetch banner stats');
@@ -173,15 +203,23 @@ export function useMapBanners(bounds?: { north: number; south: number; east: num
     queryFn: () => bounds ? bannerApi.getByBounds(bounds) : bannerApi.getAll(),
     select: (data): MapMarker[] => {
       const now = new Date();
-      return data.data.map((banner) => ({
-        id: banner.id,
-        position: { lat: banner.lat, lng: banner.lng },
-        party_color: banner.party.color,
-        party_name: banner.party.name,
-        text: banner.text,
-        address: banner.address,
-        is_expired: new Date(banner.end_date) < now,
-      }));
+      return data.data.map((banner) => {
+        const isExpired = banner.banner_type === 'rally'
+          ? false
+          : banner.end_date ? new Date(banner.end_date) < now : false;
+
+        return {
+          id: banner.id,
+          banner_type: banner.banner_type,
+          position: { lat: banner.lat, lng: banner.lng },
+          party_color: banner.party?.color,
+          party_name: banner.party?.name,
+          department: banner.department || undefined,
+          text: banner.text,
+          address: banner.address,
+          is_expired: isExpired,
+        };
+      });
     },
     enabled: true,
     staleTime: 1 * 60 * 1000, // 1 minute for map data
@@ -344,6 +382,11 @@ export function useExpiredBanners() {
 
   return useCallback(() => {
     const now = new Date();
-    return banners.filter(banner => new Date(banner.end_date) < now);
+    return banners.filter(banner => {
+      // Rally banners never expire
+      if (banner.banner_type === 'rally') return false;
+      // Check if end_date exists and is in the past
+      return banner.end_date ? new Date(banner.end_date) < now : false;
+    });
   }, [banners]);
 }

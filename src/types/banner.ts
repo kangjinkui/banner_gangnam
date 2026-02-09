@@ -1,16 +1,21 @@
 import { BaseEntity, Coordinates, DateRange } from './index';
 import { Party } from './party';
 
+// Banner type enum
+export type BannerType = 'political' | 'public' | 'rally';
+
 // Banner related types
 export interface Banner extends BaseEntity {
-  party_id: string;
+  banner_type: BannerType;
+  party_id: string | null;
+  department?: string | null;
   address: string;
   lat: number;
   lng: number;
   administrative_district?: string;
   text: string;
-  start_date: string;
-  end_date: string;
+  start_date?: string | null;
+  end_date?: string | null;
   image_url?: string;
   thumbnail_url?: string;
   memo?: string;
@@ -18,10 +23,12 @@ export interface Banner extends BaseEntity {
 }
 
 export interface BannerWithParty extends Banner {
-  party: Party;
+  party?: Party | null;
 }
 
-export interface BannerCreateInput {
+// Political banner create input
+export interface PoliticalBannerCreateInput {
+  banner_type: 'political';
   party_id: string;
   address: string;
   text: string;
@@ -31,25 +38,60 @@ export interface BannerCreateInput {
   is_active?: boolean;
 }
 
-export interface BannerUpdateInput {
-  party_id?: string;
-  address?: string;
-  text?: string;
+// Public banner create input
+export interface PublicBannerCreateInput {
+  banner_type: 'public';
+  department: string;
+  address: string;
+  text: string;
   start_date?: string;
   end_date?: string;
   memo?: string;
   is_active?: boolean;
 }
 
-export interface BannerFormInput extends BannerCreateInput {
-  image?: File;
+// Rally banner create input
+export interface RallyBannerCreateInput {
+  banner_type: 'rally';
+  address: string;
+  text: string;
+  start_date?: string;
+  end_date?: string;
+  memo?: string;
+  is_active?: boolean;
 }
 
+// Union type for all banner create inputs
+export type BannerCreateInput =
+  | PoliticalBannerCreateInput
+  | PublicBannerCreateInput
+  | RallyBannerCreateInput;
+
+export interface BannerUpdateInput {
+  banner_type?: BannerType;
+  party_id?: string | null;
+  department?: string | null;
+  address?: string;
+  text?: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  memo?: string;
+  is_active?: boolean;
+}
+
+export type BannerFormInput =
+  | (PoliticalBannerCreateInput & { image?: File })
+  | (PublicBannerCreateInput & { image?: File })
+  | (RallyBannerCreateInput & { image?: File });
+
 export interface BannerFilterOptions {
+  banner_type?: BannerType | 'all';
   party_id?: string[];
+  department?: string;
   administrative_district?: string[];
   is_active?: boolean;
   is_expired?: boolean;
+  exclude_rally_expired?: boolean;
   date_range?: DateRange;
   search?: string;
   coordinates?: {
@@ -66,6 +108,18 @@ export interface BannerStats {
   total: number;
   active: number;
   expired: number;
+  by_type: {
+    political: number;
+    public: number;
+    rally: number;
+  };
+  by_department: {
+    [department: string]: {
+      total: number;
+      active: number;
+      expired: number;
+    };
+  };
   by_district: { [district: string]: number };
   by_party: { [party_id: string]: number };
 }
@@ -80,8 +134,10 @@ export interface MapBounds {
 export interface MapMarker {
   id: string;
   position: Coordinates;
-  party_color: string;
-  party_name: string;
+  banner_type: BannerType;
+  party_color?: string;
+  party_name?: string;
+  department?: string;
   text: string;
   address: string;
   is_expired: boolean;

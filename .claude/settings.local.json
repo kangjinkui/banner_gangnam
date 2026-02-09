@@ -37,7 +37,12 @@
       "Bash(mv:*)",
       "Bash(ls:*)",
       "Bash(nslookup:*)",
-      "Bash(wsl:*)"
+      "Bash(wsl:*)",
+      "SlashCommand(/pdca plan public-rally-banners)",
+      "SlashCommand(/pdca design public-rally-banners)",
+      "SlashCommand(/pdca do public-rally-banners)",
+      "Bash(chmod:*)",
+      "SlashCommand(/pdca status)"
     ],
     "deny": [],
     "ask": []

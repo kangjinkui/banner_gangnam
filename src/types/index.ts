@@ -32,9 +32,13 @@ export interface DateRange {
 }
 
 export interface FilterOptions {
+  banner_type?: 'political' | 'public' | 'rally' | 'all' | Array<'political' | 'public' | 'rally'>;
+  department?: string;
   party_id?: string[];
   administrative_district?: string[];
   is_active?: boolean;
+  is_expired?: boolean;
+  exclude_rally_expired?: boolean;
   date_range?: DateRange;
   search?: string;
 }
