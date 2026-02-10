@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare data for Excel
     const excelData = banners.map(banner => ({
-      '정당명': banner.party.name,
+      '정당명': banner.party?.name || '',
       '현수막 문구': banner.text,
       '주소': banner.address,
       '행정동': banner.administrative_district || '미분류',

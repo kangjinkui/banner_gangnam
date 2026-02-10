@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
         switch (col) {
           case 'party_name':
-            value = banner.party.name;
+            value = banner.party?.name || '';
             break;
           case 'is_active':
             value = banner.is_active ? '활성' : '비활성';

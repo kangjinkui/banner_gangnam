@@ -450,7 +450,9 @@ function MapView() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Array.from(new Set(banners.filter(b => b.party).map(b => b.party.name))).map(partyName => {
+            {Array.from(
+              new Set(banners.flatMap((b) => (b.party?.name ? [b.party.name] : [])))
+            ).map(partyName => {
               const party = banners.find(b => b.party && b.party.name === partyName)?.party;
               if (!party) return null;
 
@@ -494,7 +496,11 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   const { isAuthenticated, hasPermission } = useAuth();
 
   // Get unique parties from banners
-  const uniqueParties = Array.from(new Set(banners.filter(b => b.party).map(b => b.party.name))).sort();
+  const uniqueParties = Array.from(
+    new Set(
+      banners.flatMap((b) => (b.party?.name ? [b.party.name] : []))
+    )
+  ).sort();
 
   // Get unique districts from banners
   const uniqueDistricts = Array.from(new Set(banners.map(b => b.administrative_district).filter(Boolean))).sort();
@@ -522,7 +528,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
 
     // Filter by party
     if (selectedParty) {
-      result = result.filter(banner => banner.party && banner.party.name === selectedParty);
+      result = result.filter(banner => banner.party?.name === selectedParty);
     }
 
     // Filter by district
@@ -1096,10 +1102,11 @@ function StatsView() {
   const banners = allBanners.filter(banner => banner.is_active);
 
   // Calculate statistics (only active banners with party)
-  const partyStats = banners.filter(b => b.party).reduce((acc, banner) => {
+  const partyStats = banners.reduce((acc, banner) => {
+    if (!banner.party?.name) return acc;
     const partyName = banner.party.name;
     if (!acc[partyName]) {
-      acc[partyName] = { count: 0, active: 0, expired: 0, color: banner.party.color };
+      acc[partyName] = { count: 0, active: 0, expired: 0, color: banner.party.color || '#9CA3AF' };
     }
     acc[partyName].count++;
     if (banner.is_active) acc[partyName].active++;
@@ -1187,9 +1194,10 @@ function StatsView() {
             <div className="space-y-4">
               {(() => {
                 // Calculate banner count by district and party (only political banners)
-                const districtPartyStats = banners.filter(b => b.party).reduce((acc, banner) => {
-                  const district = banner.administrative_district || 'Unknown';
-                  const partyName = banner.party.name;
+                  const districtPartyStats = banners.reduce((acc, banner) => {
+                    if (!banner.party?.name) return acc;
+                    const district = banner.administrative_district || 'Unknown';
+                    const partyName = banner.party.name;
 
                   if (!acc[district]) {
                     acc[district] = {};
@@ -1335,6 +1343,3 @@ function ExpiredView({ banners }: { banners: BannerWithParty[] }) {
     </div>
   );
 }
-
-
-
