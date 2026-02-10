@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useBanners, useBannerActions, useBannerSummary, useExpiredBanners } from '@/store/banner.store';
 import { useDeleteBanner } from '@/hooks/use-banners';
 import { BannerWithParty } from '@/types/banner';
@@ -97,7 +98,8 @@ const mockBannersData: BannerWithParty[] = [
 ];
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState('Map');
+  const pathname = usePathname();
+  const [activeTab, setActiveTab] = useState('지도');
   const [isPartyManagementOpen, setIsPartyManagementOpen] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [activePartyCount, setActivePartyCount] = useState(0);
@@ -178,7 +180,29 @@ export default function Dashboard() {
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
               <MapPin className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
-            <h1 className="text-sm sm:text-xl font-semibold text-gray-900 whitespace-nowrap">Banner Management</h1>
+            <h1 className="text-sm sm:text-xl font-semibold text-gray-900 whitespace-nowrap">현수막 관리</h1>
+
+            {/* Page Toggle Buttons */}
+            <div className="hidden md:flex items-center gap-1 ml-4">
+              <Link href="/">
+                <Button
+                  variant={pathname === '/' ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-8 px-3 text-xs font-medium"
+                >
+                  정치 현수막
+                </Button>
+              </Link>
+              <Link href="/public-rally">
+                <Button
+                  variant={pathname === '/public-rally' ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-8 px-3 text-xs font-medium"
+                >
+                  공공·집회 현수막
+                </Button>
+              </Link>
+            </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {isAuthenticated && user ? (
@@ -201,13 +225,13 @@ export default function Dashboard() {
                       onClick={() => setIsPartyManagementOpen(true)}
                     >
                       <Users className="w-4 h-4 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline ml-1">Parties</span>
+                      <span className="hidden sm:inline ml-1">정당 관리</span>
                     </Button>
 
                     <Button asChild variant="outline" size="sm" className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3">
                       <Link href="/admin/users">
                         <Shield className="w-4 h-4 sm:w-4 sm:h-4" />
-                        <span className="hidden sm:inline ml-1">Users</span>
+                        <span className="hidden sm:inline ml-1">사용자 관리</span>
                       </Link>
                     </Button>
                   </>
@@ -217,7 +241,7 @@ export default function Dashboard() {
                   <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3">
                     <Link href="/register">
                       <MapPin className="w-4 h-4 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline ml-1">Register</span>
+                      <span className="hidden sm:inline ml-1">등록</span>
                     </Link>
                   </Button>
                 )}
@@ -238,7 +262,7 @@ export default function Dashboard() {
                 onClick={() => setIsLoginDialogOpen(true)}
               >
                 <UserIcon className="w-4 h-4 sm:w-4 sm:h-4" />
-                <span className="ml-1.5">Login</span>
+                <span className="ml-1.5">로그인</span>
               </Button>
             )}
           </div>
@@ -249,28 +273,28 @@ export default function Dashboard() {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 mb-4 sm:mb-8">
           <StatsCard
-            title="Total Banners"
+            title="전체 현수막"
             value={summary.total}
             change={12}
             icon={<MapPin className="w-4 h-4 sm:w-6 sm:h-6 text-indigo-600" />}
             color="bg-indigo-100"
           />
           <StatsCard
-            title="Active Parties"
+            title="활성 정당"
             value={activePartyCount}
             change={0}
             icon={<Users className="w-4 h-4 sm:w-6 sm:h-6 text-red-600" />}
             color="bg-red-100"
           />
           <StatsCard
-            title="Active Banners"
+            title="활성 현수막"
             value={summary.active}
             change={8}
             icon={<Calendar className="w-4 h-4 sm:w-6 sm:h-6 text-teal-600" />}
             color="bg-teal-100"
           />
           <StatsCard
-            title="Expired"
+            title="만료"
             value={summary.expired}
             change={3}
             icon={<AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 text-red-600" />}
@@ -280,7 +304,7 @@ export default function Dashboard() {
 
         {/* Navigation Tabs */}
         <div className="flex gap-1 sm:gap-4 mb-4 sm:mb-6 overflow-x-auto">
-          {['Map', 'List', 'Stats', 'Expired'].map((tab) => (
+          {['지도', '목록', '통계', '만료'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -290,10 +314,10 @@ export default function Dashboard() {
                   : 'bg-white text-gray-600 hover:bg-gray-100'
               }`}
             >
-              {tab === 'Map' && <MapPin className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
-              {tab === 'List' && <Filter className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
-              {tab === 'Stats' && <Calendar className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
-              {tab === 'Expired' && <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
+              {tab === '지도' && <MapPin className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
+              {tab === '목록' && <Filter className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
+              {tab === '통계' && <Calendar className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
+              {tab === '만료' && <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />}
               {tab}
             </button>
           ))}
@@ -302,10 +326,10 @@ export default function Dashboard() {
         {/* Content Area */}
         <Card>
           <CardContent className="p-3 sm:p-6">
-            {activeTab === 'Map' && <MapView />}
-            {activeTab === 'List' && <ListView banners={banners} />}
-            {activeTab === 'Stats' && <StatsView />}
-            {activeTab === 'Expired' && <ExpiredView banners={expiredBanners} />}
+            {activeTab === '지도' && <MapView />}
+            {activeTab === '목록' && <ListView banners={banners} />}
+            {activeTab === '통계' && <StatsView />}
+            {activeTab === '만료' && <ExpiredView banners={expiredBanners} />}
           </CardContent>
         </Card>
       </div>
@@ -390,14 +414,20 @@ function MapView() {
                   {selectedBanner.address}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge
-                    style={{ backgroundColor: selectedBanner.party.color, color: 'white' }}
-                    className="text-xs"
-                  >
-                    {selectedBanner.party.name}
-                  </Badge>
+                  {selectedBanner.party ? (
+                    <Badge
+                      style={{ backgroundColor: selectedBanner.party.color, color: 'white' }}
+                      className="text-xs"
+                    >
+                      {selectedBanner.party.name}
+                    </Badge>
+                  ) : (
+                    <Badge className="text-xs">
+                      {selectedBanner.banner_type === 'public' ? 'Public' : 'Rally'}
+                    </Badge>
+                  )}
                   <span className="text-sm text-gray-600">
-                    {selectedBanner.start_date} ~ {selectedBanner.end_date}
+                    {selectedBanner.start_date || '-'} ~ {selectedBanner.end_date || '-'}
                   </span>
                 </div>
               </div>
@@ -406,7 +436,7 @@ function MapView() {
                 size="sm"
                 onClick={() => setSelectedBanner(null)}
               >
-                Close
+                닫기
               </Button>
             </div>
           </CardContent>
@@ -416,12 +446,12 @@ function MapView() {
       {/* Legend */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Legend</CardTitle>
+          <CardTitle className="text-lg">범례</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Array.from(new Set(banners.map(b => b.party.name))).map(partyName => {
-              const party = banners.find(b => b.party.name === partyName)?.party;
+            {Array.from(new Set(banners.filter(b => b.party).map(b => b.party.name))).map(partyName => {
+              const party = banners.find(b => b.party && b.party.name === partyName)?.party;
               if (!party) return null;
 
               return (
@@ -432,7 +462,7 @@ function MapView() {
                   />
                   <span className="text-sm">{partyName}</span>
                   <span className="text-xs text-gray-500">
-                    ({banners.filter(b => b.party.name === partyName).length})
+                    ({banners.filter(b => b.party && b.party.name === partyName).length})
                   </span>
                 </div>
               );
@@ -464,7 +494,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
   const { isAuthenticated, hasPermission } = useAuth();
 
   // Get unique parties from banners
-  const uniqueParties = Array.from(new Set(banners.map(b => b.party.name))).sort();
+  const uniqueParties = Array.from(new Set(banners.filter(b => b.party).map(b => b.party.name))).sort();
 
   // Get unique districts from banners
   const uniqueDistricts = Array.from(new Set(banners.map(b => b.administrative_district).filter(Boolean))).sort();
@@ -492,7 +522,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
 
     // Filter by party
     if (selectedParty) {
-      result = result.filter(banner => banner.party.name === selectedParty);
+      result = result.filter(banner => banner.party && banner.party.name === selectedParty);
     }
 
     // Filter by district
@@ -726,7 +756,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       {/* Filters */}
       <div className="mb-4 sm:mb-6">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h3 className="text-sm sm:text-lg font-semibold">Filters & Search</h3>
+          <h3 className="text-sm sm:text-lg font-semibold">필터 및 검색</h3>
           <Button
             variant="outline"
             size="sm"
@@ -735,8 +765,8 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
             disabled={isExporting || filteredBanners.length === 0}
           >
             <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">{isExporting ? 'Downloading...' : 'Export Excel'}</span>
-            <span className="sm:hidden">Export</span>
+            <span className="hidden sm:inline">{isExporting ? '다운로드 중...' : '엑셀 내보내기'}</span>
+            <span className="sm:hidden">내보내기</span>
           </Button>
         </div>
 
@@ -744,7 +774,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           <div className="relative sm:col-span-2 md:col-span-1">
             <Search className="w-3 h-3 sm:w-4 sm:h-4 absolute left-2 sm:left-3 top-2 sm:top-3 text-gray-400" />
             <Input
-              placeholder="Search address or text"
+              placeholder="주소 또는 문구 검색"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -753,7 +783,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           </div>
           <Select value={selectedParty} onValueChange={setSelectedParty}>
             <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
-              <SelectValue placeholder="Party" />
+              <SelectValue placeholder="정당" />
             </SelectTrigger>
             <SelectContent>
               {uniqueParties.map(partyName => (
@@ -765,7 +795,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           </Select>
           <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
             <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
-              <SelectValue placeholder="District" />
+              <SelectValue placeholder="행정동" />
             </SelectTrigger>
             <SelectContent>
               {uniqueDistricts.map(district => (
@@ -777,12 +807,12 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           </Select>
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
             <SelectTrigger className="text-xs sm:text-sm h-8 sm:h-10">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder="상태" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="active" className="text-xs sm:text-sm">Active</SelectItem>
-              <SelectItem value="expired" className="text-xs sm:text-sm">Expired</SelectItem>
-              <SelectItem value="inactive" className="text-xs sm:text-sm">Inactive</SelectItem>
+              <SelectItem value="active" className="text-xs sm:text-sm">활성</SelectItem>
+              <SelectItem value="expired" className="text-xs sm:text-sm">만료</SelectItem>
+              <SelectItem value="inactive" className="text-xs sm:text-sm">비활성</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -792,7 +822,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
             className="bg-indigo-600 hover:bg-indigo-700 text-xs sm:text-sm h-8 sm:h-10"
           >
             <Search className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-            Search
+            검색
           </Button>
           <Button
             onClick={handleReset}
@@ -801,7 +831,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
             className="text-xs sm:text-sm h-8 sm:h-10"
             disabled={!searchQuery && !selectedParty && !selectedDistrict && !selectedStatus}
           >
-            Reset
+            초기화
           </Button>
         </div>
       </div>
@@ -812,7 +842,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="text-xs sm:text-sm font-medium text-indigo-900">
-                {selectedBannerIds.size} selected
+                {selectedBannerIds.size}개 선택됨
               </span>
               <Button
                 variant="outline"
@@ -820,7 +850,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
                 className="text-xs sm:text-sm h-6 sm:h-8 px-2 sm:px-3"
                 onClick={() => setSelectedBannerIds(new Set())}
               >
-                Clear
+                지우기
               </Button>
             </div>
             <div className="flex gap-1 sm:gap-2 flex-wrap">
@@ -831,7 +861,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
                 onClick={handleBulkActivate}
                 disabled={isBulkProcessing}
               >
-                Activate
+                활성화
               </Button>
               <Button
                 variant="outline"
@@ -840,7 +870,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
                 onClick={handleBulkDeactivate}
                 disabled={isBulkProcessing}
               >
-                Deactivate
+                비활성화
               </Button>
               {hasPermission('banners', 'delete') && (
                 <Button
@@ -850,7 +880,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
                   onClick={handleBulkDelete}
                   disabled={isBulkProcessing}
                 >
-                  Delete
+                  삭제
                 </Button>
               )}
             </div>
@@ -861,7 +891,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
       {/* Banner List */}
       <div className="space-y-2 sm:space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm sm:text-lg font-semibold">List ({filteredBanners.length})</h3>
+          <h3 className="text-sm sm:text-lg font-semibold">목록 ({filteredBanners.length})</h3>
           {isAuthenticated && hasPermission('banners', 'update') && filteredBanners.length > 0 && (
             <Button
               variant="outline"
@@ -869,7 +899,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
               className="text-xs sm:text-sm h-6 sm:h-8 px-2 sm:px-3"
               onClick={handleSelectAll}
             >
-              {selectedBannerIds.size === filteredBanners.length ? 'Clear All' : 'Select All'}
+              {selectedBannerIds.size === filteredBanners.length ? '전체 해제' : '전체 선택'}
             </Button>
           )}
         </div>
@@ -889,13 +919,13 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
         ) : (
           <div className="text-center py-8 bg-gray-50 rounded-lg">
             <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-500">No results found.</p>
+            <p className="text-gray-500">검색 결과가 없습니다.</p>
             <Button
               onClick={handleReset}
               variant="outline"
               className="mt-4"
             >
-              Reset Filters
+              필터 초기화
             </Button>
           </div>
         )}
@@ -1005,8 +1035,8 @@ function BannerCard({
                 e.stopPropagation();
                 const newStatus = !banner.is_active;
                 const confirmMessage = newStatus
-                  ? 'Activate this banner?'
-                  : 'Deactivate this banner? Deactivated banners are hidden from the main list.';
+                  ? '이 현수막을 활성화하시겠습니까?'
+                  : '이 현수막을 비활성화하시겠습니까? 비활성화된 현수막은 메인 목록에서 숨겨집니다.';
 
                 if (!confirm(confirmMessage)) return;
 
@@ -1021,19 +1051,19 @@ function BannerCard({
                     const result = await response.json();
                     if (result.success && result.data) {
                       updateBanner(banner.id, result.data);
-                      alert(newStatus ? 'Banner activated.' : 'Banner deactivated.');
+                      alert(newStatus ? '현수막이 활성화되었습니다.' : '현수막이 비활성화되었습니다.');
                     }
                   } else {
                     const error = await response.json();
-                    alert(error.error || 'Failed to change status.');
+                    alert(error.error || '상태 변경에 실패했습니다.');
                   }
                 } catch (error) {
                   console.error('Toggle active status error:', error);
-                  alert('Error while changing status.');
+                  alert('상태 변경 중 오류가 발생했습니다.');
                 }
               }}
             >
-              {banner.is_active ? 'Deactivate' : 'Activate'}
+              {banner.is_active ? '비활성화' : '활성화'}
             </Button>
             {hasPermission('banners', 'delete') && (
               <Button
@@ -1042,13 +1072,13 @@ function BannerCard({
                 className="text-red-600 hover:text-red-700 text-[10px] sm:text-sm h-6 sm:h-8 px-1.5 sm:px-3"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (confirm('Delete this banner permanently?')) {
+                  if (confirm('이 현수막을 영구적으로 삭제하시겠습니까?')) {
                     deleteBanner.mutate({ id: banner.id, hardDelete: true });
                   }
                 }}
                 disabled={deleteBanner.isPending}
               >
-                {deleteBanner.isPending ? '...' : 'Delete'}
+                {deleteBanner.isPending ? '...' : '삭제'}
               </Button>
             )}
           </div>
@@ -1065,15 +1095,15 @@ function StatsView() {
   // Filter only active banners for statistics
   const banners = allBanners.filter(banner => banner.is_active);
 
-  // Calculate statistics (only active banners)
-  const partyStats = banners.reduce((acc, banner) => {
+  // Calculate statistics (only active banners with party)
+  const partyStats = banners.filter(b => b.party).reduce((acc, banner) => {
     const partyName = banner.party.name;
     if (!acc[partyName]) {
       acc[partyName] = { count: 0, active: 0, expired: 0, color: banner.party.color };
     }
     acc[partyName].count++;
     if (banner.is_active) acc[partyName].active++;
-    if (new Date(banner.end_date) < new Date()) acc[partyName].expired++;
+    if (banner.end_date && new Date(banner.end_date) < new Date()) acc[partyName].expired++;
     return acc;
   }, {} as Record<string, { count: number; active: number; expired: number; color: string }>);
 
@@ -1090,25 +1120,25 @@ function StatsView() {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-blue-600">{summary.total}</div>
-            <div className="text-sm text-gray-600">Total Banners</div>
+            <div className="text-sm text-gray-600">전체 현수막</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-green-600">{summary.active}</div>
-            <div className="text-sm text-gray-600">Active Banners</div>
+            <div className="text-sm text-gray-600">활성 현수막</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-red-600">{summary.expired}</div>
-            <div className="text-sm text-gray-600">Expired Banners</div>
+            <div className="text-sm text-gray-600">만료된 현수막</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-purple-600">{summary.upcoming}</div>
-            <div className="text-sm text-gray-600">Upcoming</div>
+            <div className="text-sm text-gray-600">예정</div>
           </CardContent>
         </Card>
       </div>
@@ -1117,7 +1147,7 @@ function StatsView() {
         {/* Party Statistics */}
         <Card>
           <CardHeader>
-            <CardTitle>Banner Count by Party</CardTitle>
+            <CardTitle>정당별 현수막 수</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -1135,10 +1165,10 @@ function StatsView() {
                   </div>
                   <div className="flex gap-2 text-xs">
                     <Badge variant="outline" className="text-green-600">
-                      Active: {stats.active}
+                      활성: {stats.active}
                     </Badge>
                     <Badge variant="outline" className="text-red-600">
-                      Expired: {stats.expired}
+                      만료: {stats.expired}
                     </Badge>
                   </div>
                 </div>
@@ -1150,14 +1180,14 @@ function StatsView() {
         {/* District Statistics - Banner count by party per district */}
         <Card>
           <CardHeader>
-            <CardTitle>Party Counts by District</CardTitle>
-            <CardDescription>Shows banners per party by district (highlighted when a party exceeds 2)</CardDescription>
+            <CardTitle>행정동별 정당 현수막 수</CardTitle>
+            <CardDescription>행정동별 정당 현수막 수 표시 (정당이 2개 초과 시 강조)</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {(() => {
-                // Calculate banner count by district and party
-                const districtPartyStats = banners.reduce((acc, banner) => {
+                // Calculate banner count by district and party (only political banners)
+                const districtPartyStats = banners.filter(b => b.party).reduce((acc, banner) => {
                   const district = banner.administrative_district || 'Unknown';
                   const partyName = banner.party.name;
 
@@ -1185,12 +1215,12 @@ function StatsView() {
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-gray-900">{district}</span>
-                            <span className="text-sm text-gray-500">Total {totalBanners}</span>
+                            <span className="text-sm text-gray-500">전체 {totalBanners}개</span>
                           </div>
                           {hasViolation && (
                             <Badge variant="destructive" className="gap-1">
                               <AlertTriangle className="w-3 h-3" />
-                              Exceeds 2
+                              2개 초과
                             </Badge>
                           )}
                         </div>
@@ -1233,11 +1263,12 @@ function StatsView() {
       {/* Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>최근 활동</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {banners
+              .filter(b => b.party)
               .sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
               .slice(0, 5)
               .map((banner) => (
@@ -1272,9 +1303,9 @@ function ExpiredView({ banners }: { banners: BannerWithParty[] }) {
     <div>
       <div className="flex items-center gap-2 mb-4">
         <AlertTriangle className="w-5 h-5 text-red-600" />
-        <h3 className="text-lg font-semibold text-red-600">Expired Banners</h3>
+        <h3 className="text-lg font-semibold text-red-600">만료된 현수막</h3>
       </div>
-      <p className="text-gray-600 mb-6">List of banners that have expired.</p>
+      <p className="text-gray-600 mb-6">기간이 만료된 현수막 목록입니다.</p>
 
       {banners.length > 0 ? (
         <div className="space-y-4">
@@ -1291,7 +1322,7 @@ function ExpiredView({ banners }: { banners: BannerWithParty[] }) {
         </div>
       ) : (
         <div className="text-center py-8">
-          <p className="text-gray-500">No expired banners.</p>
+          <p className="text-gray-500">만료된 현수막이 없습니다.</p>
         </div>
       )}
 

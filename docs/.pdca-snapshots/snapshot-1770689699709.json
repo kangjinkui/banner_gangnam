@@ -1,0 +1,615 @@
+{
+  "timestamp": "2026-02-10T02:14:59.709Z",
+  "reason": "compaction",
+  "status": {
+    "version": "2.0",
+    "lastUpdated": "2026-02-10T02:14:55.058Z",
+    "activeFeatures": [
+      "banner_gangnam01",
+      "validations",
+      "banner.service.ts",
+      "banners",
+      "public-rally",
+      "register",
+      "scripts",
+      "[id]",
+      "map",
+      "store"
+    ],
+    "primaryFeature": "banner_gangnam01",
+    "features": {
+      "banner_gangnam01": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:33:46.329Z",
+          "lastUpdated": "2026-02-10T02:14:55.058Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/app/page.tsx"
+      },
+      "validations": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:34:35.988Z",
+          "lastUpdated": "2026-02-09T05:12:30.546Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/lib/validations/banner.schema.ts"
+      },
+      "banner.service.ts": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:43:40.665Z",
+          "lastUpdated": "2026-02-09T05:15:42.955Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/lib/services/banner.service.ts"
+      },
+      "banners": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:45:15.709Z",
+          "lastUpdated": "2026-02-09T05:02:53.191Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/app/api/banners/route.ts"
+      },
+      "public-rally": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:46:13.813Z",
+          "lastUpdated": "2026-02-09T07:38:09.756Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/app/public-rally/page.tsx"
+      },
+      "register": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:46:14.368Z",
+          "lastUpdated": "2026-02-09T04:46:14.368Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/app/public-rally/register/page.tsx"
+      },
+      "scripts": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T04:49:12.492Z",
+          "lastUpdated": "2026-02-09T04:55:14.473Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/scripts/docker-restart.sh"
+      },
+      "[id]": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T05:14:13.836Z",
+          "lastUpdated": "2026-02-09T05:14:13.836Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/app/api/banners/[id]/route.ts"
+      },
+      "map": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T07:34:34.344Z",
+          "lastUpdated": "2026-02-09T07:34:42.464Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/features/map/components/KakaoMap.tsx"
+      },
+      "store": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-09T07:35:16.082Z",
+          "lastUpdated": "2026-02-09T07:35:37.462Z"
+        },
+        "lastFile": "/home/jinkui/banner_gangnam01/src/store/banner.store.ts"
+      }
+    },
+    "pipeline": {
+      "currentPhase": 1,
+      "level": "Dynamic",
+      "phaseHistory": []
+    },
+    "session": {
+      "startedAt": "2026-02-09T02:08:50.172Z",
+      "onboardingCompleted": false,
+      "lastActivity": "2026-02-10T02:14:55.058Z"
+    },
+    "history": [
+      {
+        "timestamp": "2026-02-09T04:33:46.329Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:33:47.130Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:33:48.427Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:33:50.104Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:33:51.797Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:34:35.988Z",
+        "feature": "validations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:34:37.182Z",
+        "feature": "validations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:34:39.139Z",
+        "feature": "validations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:34:41.092Z",
+        "feature": "validations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:35:06.502Z",
+        "feature": "validations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:43:40.665Z",
+        "feature": "banner.service.ts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:44:08.936Z",
+        "feature": "banner.service.ts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:44:09.509Z",
+        "feature": "banner.service.ts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:44:10.549Z",
+        "feature": "banner.service.ts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:45:15.709Z",
+        "feature": "banners",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:45:16.124Z",
+        "feature": "banners",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:45:32.705Z",
+        "feature": "banners",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:46:13.813Z",
+        "feature": "public-rally",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:46:14.368Z",
+        "feature": "register",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:49:12.492Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T04:55:14.474Z",
+        "feature": "scripts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:02:39.715Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:02:53.191Z",
+        "feature": "banners",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:04:31.597Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:06:11.525Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:06:24.776Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:06:38.481Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:06:45.548Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:08:05.344Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:09:32.089Z",
+        "feature": "banner.service.ts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:10:56.872Z",
+        "feature": "banner.service.ts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:12:30.546Z",
+        "feature": "validations",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:14:13.836Z",
+        "feature": "[id]",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:15:31.176Z",
+        "feature": "banner.service.ts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T05:15:42.955Z",
+        "feature": "banner.service.ts",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T07:34:34.344Z",
+        "feature": "map",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T07:34:42.465Z",
+        "feature": "map",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T07:35:16.082Z",
+        "feature": "store",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T07:35:22.622Z",
+        "feature": "store",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T07:35:28.520Z",
+        "feature": "store",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T07:35:37.462Z",
+        "feature": "store",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T07:36:13.502Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T07:36:20.582Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-09T07:38:09.756Z",
+        "feature": "public-rally",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:26:18.100Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:45:22.952Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:45:59.468Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:46:00.322Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:46:23.078Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:46:24.324Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:46:25.749Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T01:46:40.708Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:09:37.512Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:09:38.439Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:09:58.032Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:10:19.567Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:10:20.677Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:10:22.037Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:10:56.270Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:10:57.897Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:11:06.861Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:11:21.699Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:11:22.786Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:11:40.738Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:12:28.203Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:13:07.787Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:13:09.596Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:13:40.457Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:13:41.741Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:14:38.309Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:14:40.264Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:14:44.598Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:14:47.636Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:14:50.723Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-10T02:14:55.058Z",
+        "feature": "banner_gangnam01",
+        "phase": "do",
+        "action": "updated"
+      }
+    ]
+  }
+}

@@ -93,7 +93,8 @@ export async function POST(request: NextRequest) {
     const address = formData.get('address') as string;
     const text = formData.get('text') as string;
     const memo = formData.get('memo') as string || undefined;
-    const isActive = formData.get('is_active') === 'true';
+    const isActiveRaw = formData.get('is_active');
+    const isActive = isActiveRaw === null ? undefined : isActiveRaw === 'true';
     const image = formData.get('image') as File | null;
 
     // Prepare data based on banner type
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
       address,
       text,
       memo,
-      is_active: isActive,
+      ...(isActive !== undefined ? { is_active: isActive } : {}),
     };
 
     // Add type-specific fields
