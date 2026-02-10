@@ -42,7 +42,9 @@
       "SlashCommand(/pdca design public-rally-banners)",
       "SlashCommand(/pdca do public-rally-banners)",
       "Bash(chmod:*)",
-      "SlashCommand(/pdca status)"
+      "SlashCommand(/pdca status)",
+      "Bash(sed:*)",
+      "Bash(ssh:*)"
     ],
     "deny": [],
     "ask": []

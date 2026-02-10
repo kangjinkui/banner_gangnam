@@ -27,7 +27,12 @@ const bannerApi = {
     if (options?.filters?.administrative_district?.length) params.set('districts', options.filters.administrative_district.join(','));
     if (options?.filters?.date_range?.start_date) params.set('start_date', options.filters.date_range.start_date);
     if (options?.filters?.date_range?.end_date) params.set('end_date', options.filters.date_range.end_date);
-    if (options?.filters?.banner_type) params.set('banner_type', options.filters.banner_type);
+    if (options?.filters?.banner_type) {
+      const bannerType = Array.isArray(options.filters.banner_type)
+        ? options.filters.banner_type.join(',')
+        : options.filters.banner_type;
+      params.set('banner_type', bannerType);
+    }
     if (options?.filters?.department) params.set('department', options.filters.department);
     if (options?.filters?.exclude_rally_expired !== undefined) params.set('exclude_rally_expired', options.filters.exclude_rally_expired.toString());
     if (options?.sort?.field) params.set('sort_field', options.sort.field);

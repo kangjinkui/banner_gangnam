@@ -295,7 +295,8 @@ function createColoredMarkerSvg(color: string): string {
     </svg>
   `.trim();
 
-  // SVG占?data URL占?蹂??  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+  // SVG를 data URL로 변환
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
 }
 
 // HTML 湲곕컲 而ㅼ뒪?占?留덉빱 ?占쎌꽦 (?占??
