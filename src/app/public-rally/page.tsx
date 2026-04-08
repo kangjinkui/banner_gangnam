@@ -67,10 +67,11 @@ export default function PublicRallyDashboard() {
   }, [setBanners]);
 
   // Calculate stats
+  const today = new Date().toISOString().split('T')[0];
   const activeBanners = banners.filter(b => b.is_active);
   const expiredBanners = banners.filter(b => {
-    if (b.banner_type === 'rally') return false; // Rally banners don't expire
-    return b.is_active && b.end_date && new Date(b.end_date) < new Date();
+    if (b.banner_type === 'rally') return false;
+    return b.is_active && b.end_date && b.end_date < today;
   });
   const publicCount = banners.filter(b => b.banner_type === 'public' && b.is_active).length;
   const rallyCount = banners.filter(b => b.banner_type === 'rally' && b.is_active).length;
@@ -84,12 +85,12 @@ export default function PublicRallyDashboard() {
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
               <MapPin className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
-            <h1 className="text-sm sm:text-xl font-semibold text-gray-900 whitespace-nowrap">공공/집회 현수막</h1>
+            <h1 className="text-sm sm:text-xl font-semibold text-gray-900 whitespace-nowrap">공공/집회시위 현수막</h1>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <Link href="/">
               <Button variant="ghost" size="sm" className="h-8 sm:h-9">
-                정치
+                정당
               </Button>
             </Link>
             {isAuthenticated && user ? (
@@ -140,13 +141,13 @@ export default function PublicRallyDashboard() {
             color="bg-blue-100"
           />
           <StatsCard
-            title="집회 현수막"
+            title="집회시위 현수막"
             value={rallyCount}
             icon={<Calendar className="w-4 h-4 sm:w-6 sm:h-6 text-purple-600" />}
             color="bg-purple-100"
           />
           <StatsCard
-            title="만료 예정"
+            title="만료"
             value={expiredBanners.length}
             icon={<AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 text-red-600" />}
             color="bg-red-100"
@@ -161,7 +162,7 @@ export default function PublicRallyDashboard() {
             onClick={() => setBannerTypeFilter('all')}
             className={bannerTypeFilter === 'all' ? 'bg-gray-900' : ''}
           >
-            모두
+            전체
           </Button>
           <Button
             variant={bannerTypeFilter === 'public' ? 'default' : 'outline'}
@@ -177,7 +178,7 @@ export default function PublicRallyDashboard() {
             onClick={() => setBannerTypeFilter('rally')}
             className={bannerTypeFilter === 'rally' ? 'bg-blue-600' : ''}
           >
-            🔵 집회
+            🔵 집회시위
           </Button>
         </div>
 
@@ -241,9 +242,24 @@ function StatsCard({ title, value, icon, color }: {
 
 function MapView({ banners }: { banners: BannerWithParty[] }) {
   const [selectedBanner, setSelectedBanner] = useState<BannerWithParty | null>(null);
+  const publicCount = banners.filter(b => b.banner_type === 'public').length;
+  const rallyCount = banners.filter(b => b.banner_type === 'rally').length;
 
   return (
     <div className="space-y-4">
+      {/* 범례 */}
+      <div className="flex items-center gap-4 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm">
+        <span className="font-medium text-gray-600">범례</span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block w-3 h-3 rounded-full bg-green-500" />
+          공공현수막 ({publicCount})
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block w-3 h-3 rounded-full bg-blue-500" />
+          집회시위현수막 ({rallyCount})
+        </span>
+      </div>
+
       <div className="h-[500px] bg-gray-100 rounded-lg overflow-hidden">
         <KakaoMap
           banners={banners}
@@ -266,12 +282,17 @@ function MapView({ banners }: { banners: BannerWithParty[] }) {
                   <MapPin className="w-4 h-4" />
                   {selectedBanner.address}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={selectedBanner.banner_type === 'public' ? 'bg-green-600' : 'bg-blue-600'}>
-                    {selectedBanner.banner_type === 'public' ? '공공' : '집회'}
+                    {selectedBanner.banner_type === 'public' ? '공공' : '집회시위'}
                   </Badge>
                   {selectedBanner.department && (
                     <Badge variant="secondary">{selectedBanner.department}</Badge>
+                  )}
+                  {selectedBanner.banner_type === 'public' && (selectedBanner.start_date || selectedBanner.end_date) && (
+                    <span className="text-xs text-gray-500">
+                      표시기간: {selectedBanner.start_date || '-'} ~ {selectedBanner.end_date || '-'}
+                    </span>
                   )}
                 </div>
               </div>
@@ -293,13 +314,92 @@ function MapView({ banners }: { banners: BannerWithParty[] }) {
 function ListView({ banners }: { banners: BannerWithParty[] }) {
   const [selectedBanner, setSelectedBanner] = useState<BannerWithParty | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [districtFilter, setDistrictFilter] = useState('전체');
+  const [statusFilter, setStatusFilter] = useState('전체');
+  const [isExporting, setIsExporting] = useState(false);
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const districts = ['전체', ...Array.from(new Set(banners.map(b => b.administrative_district).filter(Boolean))).sort() as string[]];
+
+  const filtered = banners.filter(b => {
+    if (searchText && !b.text.includes(searchText) && !b.address.includes(searchText)) return false;
+    if (districtFilter !== '전체' && b.administrative_district !== districtFilter) return false;
+    if (statusFilter === '활성') return b.is_active && !(b.banner_type !== 'rally' && b.end_date && b.end_date < today);
+    if (statusFilter === '만료') return b.banner_type !== 'rally' && b.end_date && b.end_date < today;
+    if (statusFilter === '비활성') return !b.is_active;
+    return true;
+  });
+
+  const handleExcelExport = async () => {
+    setIsExporting(true);
+    try {
+      const response = await fetch('/api/export/excel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filters: { banner_type: ['public', 'rally'] } }),
+      });
+      if (!response.ok) throw new Error('내보내기 실패');
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `공공집회시위현수막_${today}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('엑셀 내보내기에 실패했습니다.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-4">목록 ({banners.length})</h3>
-      {banners.length > 0 ? (
+      {/* 필터 및 검색 */}
+      <div className="flex flex-wrap items-center gap-2 mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <span className="text-sm font-medium text-gray-600">필터 및 검색</span>
+        <input
+          type="text"
+          value={searchText}
+          onChange={e => setSearchText(e.target.value)}
+          placeholder="주소 또는 문구 검색"
+          className="flex-1 min-w-[160px] px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+        <select
+          value={districtFilter}
+          onChange={e => setDistrictFilter(e.target.value)}
+          className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          {districts.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          {['전체', '활성', '만료', '비활성'].map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <button
+          onClick={() => { setSearchText(''); setDistrictFilter('전체'); setStatusFilter('전체'); }}
+          className="px-3 py-1.5 text-sm bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
+        >
+          초기화
+        </button>
+        <button
+          onClick={handleExcelExport}
+          disabled={isExporting}
+          className="ml-auto px-3 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50"
+        >
+          {isExporting ? '처리 중...' : '엑셀 내보내기'}
+        </button>
+      </div>
+
+      <h3 className="text-lg font-semibold mb-4">목록 ({filtered.length})</h3>
+      {filtered.length > 0 ? (
         <div className="space-y-4">
-          {banners.map((banner) => (
+          {filtered.map((banner) => (
             <div
               key={banner.id}
               className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
@@ -319,17 +419,22 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
                   <MapPin className="w-4 h-4" />
                   {banner.address}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={banner.banner_type === 'public' ? 'bg-green-600' : 'bg-blue-600'}>
-                    {banner.banner_type === 'public' ? '공공' : '집회'}
+                    {banner.banner_type === 'public' ? '공공' : '집회시위'}
                   </Badge>
                   {banner.department && (
                     <Badge variant="secondary">{banner.department}</Badge>
                   )}
+                  {banner.banner_type !== 'rally' && banner.end_date && banner.end_date < today && (
+                    <Badge variant="destructive">만료됨</Badge>
+                  )}
                 </div>
               </div>
-              <div className="text-sm text-gray-600">
-                {banner.start_date || '-'} ~ {banner.end_date || '-'}
+              <div className="text-sm text-gray-600 text-right">
+                {banner.banner_type === 'public'
+                  ? `${banner.start_date || '-'} ~ ${banner.end_date || '-'}`
+                  : ''}
               </div>
             </div>
           ))}
@@ -344,6 +449,7 @@ function ListView({ banners }: { banners: BannerWithParty[] }) {
         banner={selectedBanner}
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
+        onUpdate={() => { setIsDetailDialogOpen(false); window.location.reload(); }}
       />
     </div>
   );
@@ -381,15 +487,15 @@ function StatsView({ banners }: { banners: BannerWithParty[] }) {
       {/* Type Stats */}
       <Card>
         <CardContent className="p-6">
-          <h3 className="text-lg font-semibold mb-4">타입별 통계</h3>
+          <h3 className="text-lg font-semibold mb-4">통계 구분</h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">{publicBanners.length}</div>
-              <div className="text-sm text-green-700">공공 현수막</div>
+              <div className="text-base text-green-700">공공 현수막</div>
             </div>
             <div className="p-4 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">{rallyBanners.length}</div>
-              <div className="text-sm text-blue-700">집회 현수막</div>
+              <div className="text-base text-blue-700">집회시위 현수막</div>
             </div>
           </div>
         </CardContent>

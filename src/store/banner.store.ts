@@ -130,12 +130,12 @@ export const useBannerStore = create<BannerState>()(
 
       getExpiredBanners: () => {
         const state = get();
-        const now = new Date();
+        const today = new Date().toISOString().split('T')[0];
         return state.banners.filter((banner) => {
           // Rally banners don't expire
           if (banner.banner_type === 'rally') return false;
-          // Check if banner has end_date and is expired
-          return banner.end_date && new Date(banner.end_date) < now;
+          // Check if banner has end_date and is expired (익일부터 만료)
+          return banner.end_date && banner.end_date < today;
         });
       },
 

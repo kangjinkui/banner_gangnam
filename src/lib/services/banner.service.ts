@@ -27,7 +27,8 @@ export class BannerService {
       return false;
     }
 
-    return new Date(banner.end_date) < new Date();
+    const today = new Date().toISOString().split('T')[0];
+    return banner.end_date < today;
   }
 
   /**
@@ -51,9 +52,9 @@ export class BannerService {
    */
   static getBannerTypeLabel(type: BannerType): string {
     const labels: Record<BannerType, string> = {
-      political: '정치',
+      political: '정당',
       public: '공공',
-      rally: '집회',
+      rally: '집회시위',
     };
     return labels[type];
   }

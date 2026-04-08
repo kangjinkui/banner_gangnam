@@ -120,8 +120,10 @@ export async function POST(request: NextRequest) {
     } else if (bannerType === 'rally') {
       const startDate = formData.get('start_date') as string;
       const endDate = formData.get('end_date') as string;
+      const posterName = formData.get('poster_name') as string;
       if (startDate) bannerData.start_date = startDate;
       if (endDate) bannerData.end_date = endDate;
+      if (posterName) bannerData.poster_name = posterName;
     }
 
     // Validate input

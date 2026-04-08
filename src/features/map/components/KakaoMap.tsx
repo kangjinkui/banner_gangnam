@@ -151,7 +151,8 @@ export function KakaoMap({
 
       // ?占쏀룷?占쎈룄?占쎈룄 CustomOverlay占??占쎌꽦
       const imageUrl = banner.image_url || banner.thumbnail_url || PLACEHOLDER_IMAGES.mapPopup;
-      const isExpired = new Date(banner.end_date) < new Date();
+      const today = new Date().toISOString().split('T')[0];
+      const isExpired = !!banner.end_date && banner.end_date < today;
 
       const infoContent = document.createElement('div');
       infoContent.style.display = 'none'; // 湲곕낯?占쎌쑝占??占쏙옙?
