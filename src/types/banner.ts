@@ -9,6 +9,7 @@ export interface Banner extends BaseEntity {
   banner_type: BannerType;
   party_id: string | null;
   department?: string | null;
+  poster_name?: string | null;
   address: string;
   lat: number;
   lng: number;
@@ -55,6 +56,7 @@ export interface RallyBannerCreateInput {
   banner_type: 'rally';
   address: string;
   text: string;
+  poster_name?: string;
   start_date?: string;
   end_date?: string;
   memo?: string;
@@ -71,6 +73,7 @@ export interface BannerUpdateInput {
   banner_type?: BannerType;
   party_id?: string | null;
   department?: string | null;
+  poster_name?: string | null;
   address?: string;
   text?: string;
   start_date?: string | null;

@@ -59,7 +59,7 @@ export default function PublicRallyRegisterPage() {
       <div className="px-6 py-6 max-w-3xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>공공/집회 현수막 등록</CardTitle>
+            <CardTitle>공공/집회시위 현수막 등록</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -81,7 +81,7 @@ export default function PublicRallyRegisterPage() {
                     className={bannerType === 'rally' ? 'bg-blue-600 hover:bg-blue-700' : ''}
                     onClick={() => setBannerType('rally')}
                   >
-                    🔵 집회 현수막
+                    🔵 집회시위 현수막
                   </Button>
                 </div>
               </div>
@@ -96,6 +96,19 @@ export default function PublicRallyRegisterPage() {
                     placeholder="예: 환경부, 교육청"
                     required
                   />
+                </div>
+              )}
+
+              {/* 게시자명 (집회시위만) */}
+              {bannerType === 'rally' && (
+                <div>
+                  <Label htmlFor="poster_name">게시자명</Label>
+                  <Input
+                    id="poster_name"
+                    name="poster_name"
+                    placeholder="게시자명을 입력하세요"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">선택 사항</p>
                 </div>
               )}
 

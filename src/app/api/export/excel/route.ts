@@ -13,18 +13,31 @@ export async function POST(request: NextRequest) {
     });
 
     // Prepare data for Excel
-    const excelData = banners.map(banner => ({
-      '정당명': banner.party?.name || '',
-      '현수막 문구': banner.text,
-      '주소': banner.address,
-      '행정동': banner.administrative_district || '미분류',
-      '시작일': banner.start_date,
-      '종료일': banner.end_date,
-      '활성 상태': banner.is_active ? '활성' : '비활성',
-      '생성일': new Date(banner.created_at).toLocaleDateString('ko-KR'),
-      '메모': banner.memo || '',
-      '이미지 URL': banner.image_url || '',
-    }));
+    const isPublicRallyExport = filters.banner_type &&
+      Array.isArray(filters.banner_type) &&
+      filters.banner_type.includes('public');
+
+    const excelData = banners.map(banner => {
+      const isRally = banner.banner_type === 'rally';
+      const base: Record<string, string | undefined> = {
+        '게시자명': (banner as any).poster_name || (banner.party?.name) || '',
+        '현수막 문구': banner.text,
+        '주소': banner.address,
+        '행정동': banner.administrative_district || '미분류',
+        '활성 상태': banner.is_active ? '활성' : '비활성',
+        '생성일': new Date(banner.created_at).toLocaleDateString('ko-KR'),
+        '메모': banner.memo || '',
+        '이미지 URL': banner.image_url || '',
+      };
+      if (!isPublicRallyExport || !isRally) {
+        base['시작일'] = banner.start_date || '';
+        base['종료일'] = banner.end_date || '';
+      } else {
+        base['시작일'] = '';
+        base['종료일'] = '';
+      }
+      return base;
+    });
 
     // Create workbook and worksheet
     const workbook = XLSX.utils.book_new();
@@ -32,16 +45,16 @@ export async function POST(request: NextRequest) {
 
     // Set column widths
     const columnWidths = [
-      { wch: 15 }, // 정당명
+      { wch: 15 }, // 게시자명
       { wch: 30 }, // 현수막 문구
       { wch: 40 }, // 주소
       { wch: 12 }, // 행정동
-      { wch: 12 }, // 시작일
-      { wch: 12 }, // 종료일
       { wch: 10 }, // 활성 상태
       { wch: 12 }, // 생성일
       { wch: 30 }, // 메모
       { wch: 50 }, // 이미지 URL
+      { wch: 12 }, // 시작일
+      { wch: 12 }, // 종료일
     ];
     worksheet['!cols'] = columnWidths;
 

@@ -118,7 +118,7 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         // Fetch all banners (including inactive) with higher limit for filtering
-        const response = await fetch('/api/banners?limit=1000');
+        const response = await fetch('/api/banners?limit=1000&banner_type=political');
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
@@ -190,7 +190,7 @@ export default function Dashboard() {
                   size="sm"
                   className="h-8 px-3 text-xs font-medium"
                 >
-                  정치 현수막
+                  정당 현수막
                 </Button>
               </Link>
               <Link href="/public-rally">
@@ -199,7 +199,7 @@ export default function Dashboard() {
                   size="sm"
                   className="h-8 px-3 text-xs font-medium"
                 >
-                  공공·집회 현수막
+                  공공·집회시위 현수막
                 </Button>
               </Link>
             </div>
@@ -327,9 +327,9 @@ export default function Dashboard() {
         <Card>
           <CardContent className="p-3 sm:p-6">
             {activeTab === '지도' && <MapView />}
-            {activeTab === '목록' && <ListView banners={banners} />}
+            {activeTab === '목록' && <ListView banners={banners.filter(b => b.banner_type === 'political')} />}
             {activeTab === '통계' && <StatsView />}
-            {activeTab === '만료' && <ExpiredView banners={expiredBanners} />}
+            {activeTab === '만료' && <ExpiredView banners={expiredBanners.filter(b => b.banner_type === 'political')} />}
           </CardContent>
         </Card>
       </div>
@@ -383,8 +383,8 @@ function StatsCard({ title, value, change, icon, color }: {
 
 function MapView() {
   const allBanners = useBanners();
-  // Only show active banners on the map
-  const banners = allBanners.filter(b => b.is_active);
+  // Only show active political banners on the map
+  const banners = allBanners.filter(b => b.is_active && b.banner_type === 'political');
   const [selectedBanner, setSelectedBanner] = useState<BannerWithParty | null>(null);
 
   return (
@@ -1098,8 +1098,8 @@ function StatsView() {
   const allBanners = useBanners();
   const summary = useBannerSummary();
 
-  // Filter only active banners for statistics
-  const banners = allBanners.filter(banner => banner.is_active);
+  // Filter only active political banners for statistics
+  const banners = allBanners.filter(banner => banner.is_active && banner.banner_type === 'political');
 
   // Calculate statistics (only active banners with party)
   const partyStats = banners.reduce((acc, banner) => {
