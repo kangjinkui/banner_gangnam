@@ -174,97 +174,100 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
-        <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-2 sm:gap-3">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <MapPin className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+      <header className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="max-w-[1400px] mx-auto flex flex-col gap-2 sm:gap-3">
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <MapPin className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+              </div>
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 whitespace-nowrap">현수막 관리</h1>
             </div>
-            <h1 className="text-sm sm:text-xl font-semibold text-gray-900 whitespace-nowrap">현수막 관리</h1>
-
-            {/* Page Toggle Buttons */}
-            <div className="hidden md:flex items-center gap-1 ml-4">
-              <Link href="/">
-                <Button
-                  variant={pathname === '/' ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-8 px-3 text-xs font-medium"
-                >
-                  정당 현수막
-                </Button>
-              </Link>
-              <Link href="/public-rally">
-                <Button
-                  variant={pathname === '/public-rally' ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-8 px-3 text-xs font-medium"
-                >
-                  공공·집회시위 현수막
-                </Button>
-              </Link>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            {isAuthenticated && user ? (
-              <>
-                {/* User Info - icon only on mobile */}
-                <Link href="/profile" className="flex-shrink-0">
-                  <Button variant="ghost" size="sm" className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3">
-                    <UserIcon className="w-4 h-4 sm:w-4 sm:h-4 text-gray-600" />
-                    <span className="hidden sm:inline ml-2 text-sm">{user.email}</span>
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              {isAuthenticated && user ? (
+                <>
+                {/* User Info - desktop only */}
+                <Link href="/profile" className="hidden sm:flex flex-shrink-0">
+                  <Button variant="ghost" size="sm" className="h-9 px-3">
+                    <UserIcon className="w-4 h-4 text-gray-600" />
+                    <span className="ml-2 text-sm">{user.email}</span>
                   </Button>
                 </Link>
 
-                {/* Admin buttons - icon only */}
+                {/* Admin buttons - desktop only */}
                 {hasPermission('parties', 'update') && (
                   <>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3"
+                      className="hidden sm:flex h-9 px-3"
                       onClick={() => setIsPartyManagementOpen(true)}
                     >
-                      <Users className="w-4 h-4 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline ml-1">정당 관리</span>
+                      <Users className="w-4 h-4" />
+                      <span className="ml-1">정당 관리</span>
                     </Button>
 
-                    <Button asChild variant="outline" size="sm" className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3">
+                    <Button asChild variant="outline" size="sm" className="hidden sm:flex h-9 px-3">
                       <Link href="/admin/users">
-                        <Shield className="w-4 h-4 sm:w-4 sm:h-4" />
-                        <span className="hidden sm:inline ml-1">사용자 관리</span>
+                        <Shield className="w-4 h-4" />
+                        <span className="ml-1">사용자 관리</span>
                       </Link>
                     </Button>
                   </>
                 )}
 
+                {/* Register button - always visible */}
                 {hasPermission('banners', 'create') && (
-                  <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3">
+                  <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 h-8 sm:h-9 px-3">
                     <Link href="/register">
-                      <MapPin className="w-4 h-4 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline ml-1">등록</span>
+                      <MapPin className="w-4 h-4" />
+                      <span className="ml-1">등록</span>
                     </Link>
                   </Button>
                 )}
 
+                {/* Logout - desktop only */}
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3"
+                  className="hidden sm:flex h-9 w-9 p-0"
                   onClick={() => signOut()}
                 >
-                  <LogOut className="w-4 h-4 sm:w-4 sm:h-4" />
+                  <LogOut className="w-4 h-4" />
                 </Button>
-              </>
-            ) : (
+                </>
+              ) : (
+                <Button
+                  size="sm"
+                  className="bg-indigo-600 hover:bg-indigo-700 h-8 sm:h-9 px-3 sm:px-4 text-sm"
+                  onClick={() => setIsLoginDialogOpen(true)}
+                >
+                  <UserIcon className="w-4 h-4" />
+                  <span className="ml-1.5">로그인</span>
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 overflow-x-auto">
+            <Link href="/">
               <Button
+                variant={pathname === '/' ? 'default' : 'outline'}
                 size="sm"
-                className="bg-indigo-600 hover:bg-indigo-700 h-8 sm:h-9 px-3 sm:px-4 text-sm"
-                onClick={() => setIsLoginDialogOpen(true)}
+                className="h-8 px-2 sm:px-3 text-xs font-medium whitespace-nowrap"
               >
-                <UserIcon className="w-4 h-4 sm:w-4 sm:h-4" />
-                <span className="ml-1.5">로그인</span>
+                정당 현수막
               </Button>
-            )}
+            </Link>
+            <Link href="/public-rally">
+              <Button
+                variant={pathname === '/public-rally' ? 'default' : 'outline'}
+                size="sm"
+                className="h-8 px-2 sm:px-3 text-xs font-medium whitespace-nowrap"
+              >
+                공공·집회시위
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
