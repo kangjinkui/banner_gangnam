@@ -1,0 +1,27 @@
+services:
+  app:
+    image: banner_gangnam:latest
+    container_name: banner_gangnam_app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      NEXT_PUBLIC_KAKAO_REST_API_KEY: ${NEXT_PUBLIC_KAKAO_REST_API_KEY}
+      NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY: ${NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY}
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: 1
+    networks:
+      - banner_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  banner_network:
+    driver: bridge
