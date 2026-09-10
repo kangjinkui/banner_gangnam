@@ -48,3 +48,6 @@ deploy.sh
 
 # archived files (development docs, scripts, samples)
 .archive
+
+# OMC operational state
+.omc/
