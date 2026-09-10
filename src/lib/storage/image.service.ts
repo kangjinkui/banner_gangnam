@@ -23,6 +23,42 @@ export class ImageService {
   private static readonly DEFAULT_THUMBNAIL_SIZE = { width: 300, height: 200 };
   private static readonly DEFAULT_MAX_SIZE = { width: 1920, height: 1080 };
   private static readonly DEFAULT_QUALITY = 0.8;
+  private static readonly THUMBNAIL_QUALITY = 0.65;
+
+  /**
+   * 서버(Node)에서 sharp 로 리사이즈·재인코딩한다.
+   * 원본보다 커지면 원본을 그대로 돌려준다.
+   */
+  private static async processImageOnServer(
+    file: File,
+    options: { maxWidth: number; maxHeight: number; quality: number; suffix?: string }
+  ): Promise<File> {
+    const { maxWidth, maxHeight, quality, suffix = '' } = options;
+
+    try {
+      const { default: sharp } = await import('sharp');
+      const input = Buffer.from(await file.arrayBuffer());
+
+      const output = await sharp(input)
+        .rotate() // EXIF 방향 반영 후 메타데이터 제거
+        .resize(maxWidth, maxHeight, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: Math.round(quality * 100), progressive: true, mozjpeg: true })
+        .toBuffer();
+
+      if (output.byteLength >= input.byteLength && !suffix) {
+        return file;
+      }
+
+      const baseName = file.name.replace(/\.[^./]+$/, '');
+      return new File([new Uint8Array(output)], `${baseName}${suffix}.jpg`, {
+        type: 'image/jpeg',
+      });
+    } catch (error) {
+      // 이미지 처리 실패가 업로드 전체를 막지는 않도록 원본으로 진행한다.
+      console.error('서버 이미지 처리 실패, 원본을 사용합니다:', error);
+      return file;
+    }
+  }
 
   /**
    * Upload banner image with automatic thumbnail generation
@@ -67,10 +103,14 @@ export class ImageService {
    * Process image (resize, compress, format conversion)
    */
   static async processImage(file: File, options: ImageProcessOptions = {}): Promise<File> {
-    // Check if we're in browser environment
+    // Canvas 는 브라우저에만 있으므로 서버에서는 sharp 로 처리한다.
+    // 예전에는 원본을 그대로 돌려줘서 서버 경유 업로드가 전혀 압축되지 않았다.
     if (typeof document === 'undefined') {
-      // In server environment, return file as-is without processing
-      return file;
+      return this.processImageOnServer(file, {
+        maxWidth: options.maxWidth ?? this.DEFAULT_MAX_SIZE.width,
+        maxHeight: options.maxHeight ?? this.DEFAULT_MAX_SIZE.height,
+        quality: options.quality ?? this.DEFAULT_QUALITY,
+      });
     }
 
     const {
@@ -137,10 +177,15 @@ export class ImageService {
    * Generate thumbnail from image
    */
   static async generateThumbnail(file: File, options: ThumbnailOptions): Promise<File> {
-    // Check if we're in browser environment
+    // 예전에는 서버에서 원본을 그대로 썸네일로 반환해, 배너 1건당 풀사이즈 이미지가
+    // 두 벌씩 저장되고 두 벌 다 전송되었다.
     if (typeof document === 'undefined') {
-      // In server environment, return original file as thumbnail
-      return file;
+      return this.processImageOnServer(file, {
+        maxWidth: options.width,
+        maxHeight: options.height,
+        quality: options.quality ?? this.THUMBNAIL_QUALITY,
+        suffix: '_thumb',
+      });
     }
 
     const {

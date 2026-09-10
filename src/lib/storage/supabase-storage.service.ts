@@ -12,6 +12,9 @@ export class SupabaseStorageService {
   private static readonly BUCKET_NAME = 'banners';
   private static readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
   private static readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  // 업로드된 이미지는 경로가 곧 식별자라 내용이 바뀌지 않는다.
+  // 캐시 수명이 짧으면 CDN 이 원본을 반복 조회해 cached egress 를 소진한다.
+  private static readonly CACHE_CONTROL_SECONDS = '31536000'; // 1년
 
   /**
    * Upload a file to Supabase Storage
@@ -34,7 +37,7 @@ export class SupabaseStorageService {
       const { data, error } = await client.storage
         .from(this.BUCKET_NAME)
         .upload(path, file, {
-          cacheControl: '3600',
+          cacheControl: this.CACHE_CONTROL_SECONDS,
           upsert: false,
         });
 

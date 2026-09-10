@@ -150,7 +150,9 @@ export function KakaoMap({
       };
 
       // ?占쏀룷?占쎈룄?占쎈룄 CustomOverlay占??占쎌꽦
-      const imageUrl = banner.image_url || banner.thumbnail_url || PLACEHOLDER_IMAGES.mapPopup;
+      // 팝업은 300x200 영역이므로 썸네일을 우선 사용한다 (원본은 폴백).
+      // 순서를 뒤집으면 마커를 열 때마다 1920x1080 원본이 전송되어 egress 가 급증한다.
+      const imageUrl = banner.thumbnail_url || banner.image_url || PLACEHOLDER_IMAGES.mapPopup;
       const today = new Date().toISOString().split('T')[0];
       const isExpired = !!banner.end_date && banner.end_date < today;
 
